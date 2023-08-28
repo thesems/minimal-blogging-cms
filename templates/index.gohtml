@@ -1,0 +1,24 @@
+{{define "title"}}Semir Ramovic | life of sems | Learn Programming, Coding{{end}}
+
+{{define "body"}}
+<h2 class="text-xl font-semibold">Posts</h2>
+<h3 class="text-lg font-semibold">Advent of Code 2022 in Go Language</h3>
+<br>
+<p>"Advent of Code is an Advent calendar of small programming puzzles for a variety of skill sets and skill levels
+    that can be solved in any programming language you like. People use them as interview prep, company training,
+    university coursework, practice problems, a speed contest, or to challenge each other." - Advent of Code website
+</p>
+<br>
+<p>Follow my learning journey of the Go Language through the below blog posts. Please note that the solutions below
+    may not be the most optimal or correct according to Go standards (just a friendly disclaimer).
+</p>
+<br>
+<br>
+<ul>
+    {{range .BlogPosts}}
+    <li>
+        <a href="blog/{{.ID}}">{{.Title}}</a>
+    </li>
+    {{end}}
+</ul>
+{{end}}

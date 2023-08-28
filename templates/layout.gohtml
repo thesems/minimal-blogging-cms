@@ -1,0 +1,29 @@
+{{define "layout"}}
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>{{template "title"}}</title>
+    <link rel="stylesheet" href="/public/assets/main.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto%20Mono&display=swap">
+</head>
+
+<!-- bg-white dark:bg-black text-black dark:text-white -->
+
+
+<body class="mt-8 w-9/12 mx-auto">
+    <header>
+        {{template "header" .Pages}}
+    </header>
+    <hr class="my-8">
+    <main>
+        {{template "body" .}}
+    </main>
+    <footer class="mt-8">
+        {{template "footer"}}
+    </footer>
+</body>
+
+</html>
+{{end}}

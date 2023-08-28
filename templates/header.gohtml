@@ -1,0 +1,40 @@
+{{define "header"}}
+<div class="flex justify-between">
+    <div>
+        <h1 class="text-3xl">life_of_sems セマ</h1>
+    </div>
+    <div class="flex gap-2">
+        <nav>
+            <ul>
+                {{range .}}
+                <li><a href="{{.Path}}">{{.Name}}</a></li>
+                {{end}}
+            </ul>
+        </nav>
+        <input id="theme-toggle" type="checkbox" class="toggle" onclick="toggleTheme()">
+    </div>
+</div>
+</div>
+
+<script>
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.dataset.theme = 'dark'
+        document.getElementById('theme-toggle').checked = true
+    } else {
+        document.documentElement.dataset.theme = 'light'
+    }
+
+    function toggleTheme() {
+        if (localStorage.theme == 'light') {
+            localStorage.theme = 'dark'
+        } else if (localStorage.theme == 'dark') {
+            localStorage.theme = 'light'
+        } else {
+            currMode = document.documentElement.dataset.mode
+            value = currMode == 'light' ? 'dark' : 'light'
+            localStorage.theme = value
+        }
+        document.documentElement.dataset.theme = localStorage.theme
+    }
+</script>
+{{end }}
