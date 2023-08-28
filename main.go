@@ -7,6 +7,8 @@ import (
 	"lifeofsems-go/storage"
 	"lifeofsems-go/types"
 	"log"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 var tpl *template.Template
@@ -26,9 +28,19 @@ func main() {
 	case "mongo":
 		store = storage.NewMongoStorage()
 	case "memory":
+		bs, err := bcrypt.GenerateFromPassword([]byte("123"), bcrypt.DefaultCost)
+		if err != nil {
+			log.Fatalln("Internal server error during password encryption.")
+		}
+
 		store = storage.NewMemoryStorage(
+			[]*types.User{
+				types.NewUser("admin", bs, "admin@fe.com", types.Admin),
+				types.NewUser("user", bs, "user@fe.com", types.Normal),
+			},
 			[]*types.BlogPost{
 				{ID: 1, Title: "Post 1", Content: "Content 1"},
+				{ID: 2, Title: "Post 2", Content: "Content 2"},
 			},
 		)
 	default:

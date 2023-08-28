@@ -19,6 +19,8 @@ func (s *Server) HandleErrorPage(w http.ResponseWriter, req *http.Request, statu
 		data.Text = "Page not found"
 	case http.StatusMethodNotAllowed:
 		data.Text = "Method not allowed"
+	case http.StatusUnauthorized:
+		data.Text = "Unauthorized"
 	case http.StatusBadRequest:
 		data.Text = "Bad request"
 	case http.StatusForbidden:

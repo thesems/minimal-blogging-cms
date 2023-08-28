@@ -1,47 +1,54 @@
 package api
 
 import (
-	"fmt"
 	"log"
 	"net/http"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func (s *Server) HandleAdminLogin(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "text/html")
 
-	if req.Method == http.MethodGet {
+	c := GetSessionCookie(req)
+	http.SetCookie(w, c)
+	user := s.GetUser(w, req)
 
-		auth := IsAuthorized(req)
-		if !auth {
+	if req.Method == http.MethodGet {
+		if user == nil {
 			s.tpl.ExecuteTemplate(w, "admin-login.gohtml", nil)
 			return
-		} else {
-			http.Redirect(w, req, "/admin", http.StatusSeeOther)
 		}
 
+		http.Redirect(w, req, "/admin", http.StatusSeeOther)
 	} else if req.Method == http.MethodPost {
 		err := req.ParseForm()
 		if err != nil {
 			log.Fatalln(err)
 		}
-		fmt.Println("Got:", req.Form)
+
+		data := struct {
+			Text string
+		}{
+			Text: "Invalid username or password.",
+		}
 
 		username := req.Form.Get("username")
 		password := req.Form.Get("password")
 
-		if username == "admin" && password == "123" {
-			http.SetCookie(w, &http.Cookie{
-				Name:  "session",
-				Value: "topsecret",
-			})
-			http.Redirect(w, req, "/admin", http.StatusSeeOther)
-		} else {
-			data := struct {
-				Text string
-			}{
-				Text: "Invalid username or password.",
-			}
+		user, err = s.store.GetUser(username)
+		if err != nil {
+			data.Text = "User does not exist."
 			s.tpl.ExecuteTemplate(w, "admin-login.gohtml", data)
+			return
 		}
+
+		if bcrypt.CompareHashAndPassword(user.Password, []byte(password)) != nil {
+			s.tpl.ExecuteTemplate(w, "admin-login.gohtml", data)
+			return
+		}
+
+		s.store.AddSession(c.Value, username)
+		http.Redirect(w, req, "/admin", http.StatusSeeOther)
 	}
 }

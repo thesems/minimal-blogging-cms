@@ -23,7 +23,7 @@ func (s *Server) HandleIndex(w http.ResponseWriter, req *http.Request) {
 		BlogPosts []*types.BlogPost
 		Pages     []*types.Page
 	}{
-		BlogPosts: s.store.GetAll(),
+		BlogPosts: s.store.GetPosts(),
 		Pages: []*types.Page{
 			types.NewPage("Admin", "/login", types.NORMAL),
 		},

@@ -49,7 +49,7 @@ func (s *Server) CreatePost(w http.ResponseWriter, req *http.Request) {
 }
 
 func (s *Server) ViewPost(w http.ResponseWriter, req *http.Request, postId int) {
-	blogPost, err := s.store.Get(postId)
+	blogPost, err := s.store.GetPost(postId)
 	if err != nil {
 		s.HandleErrorPage(w, req, http.StatusNotFound)
 		return

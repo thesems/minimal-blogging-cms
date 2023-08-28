@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"lifeofsems-go/types"
 	"log"
 	"net/http"
 )
@@ -9,18 +10,24 @@ import (
 func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "text/html")
 
+	if !s.isLoggedIn(req) {
+		http.Redirect(w, req, "/login", http.StatusSeeOther)
+		return
+	}
+
+	user := s.GetUser(w, req)
+	if user == nil {
+		http.Redirect(w, req, "/login", http.StatusSeeOther)
+		return
+	}
+
+	if user.Role != types.Admin {
+		s.HandleErrorPage(w, req, 401)
+		return
+	}
+
 	if req.Method == http.MethodGet {
-
-		auth := IsAuthorized(req)
-		if !auth {
-			s.HandleErrorPage(w, req, http.StatusForbidden)
-			return
-		}
-
-		data := struct {
-			accessKey string
-		}{}
-
+		data := struct{}{}
 		s.tpl.ExecuteTemplate(w, "admin.gohtml", data)
 	} else if req.Method == http.MethodPost {
 		err := req.ParseForm()
