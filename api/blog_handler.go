@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"lifeofsems-go/types"
 	"net/http"
 	"strconv"
 	"strings"
@@ -55,6 +56,17 @@ func (s *Server) ViewPost(w http.ResponseWriter, req *http.Request, postId int) 
 		return
 	}
 
+	data := struct {
+		Header types.Header
+		Post   *types.BlogPost
+	}{
+		Header: types.Header{
+			Navigation: s.BuildNavigationItems(req),
+			User:       "",
+		},
+		Post: blogPost,
+	}
+
 	w.Header().Add("Content-Type", "text/html")
-	s.renderTemplate(w, req, "blog-post", blogPost)
+	s.renderTemplate(w, req, "blog-post", data)
 }
