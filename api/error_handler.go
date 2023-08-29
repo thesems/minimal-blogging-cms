@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -31,6 +30,5 @@ func (s *Server) HandleErrorPage(w http.ResponseWriter, req *http.Request, statu
 
 	w.Header().Add("Content-Type", "text/html")
 	w.WriteHeader(status)
-	s.tpl.ExecuteTemplate(w, "error-page.gohtml", data)
-	fmt.Println("hello", status, req.URL.Path)
+	s.renderTemplate(w, req, "error-page", data)
 }

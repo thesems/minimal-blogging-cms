@@ -48,3 +48,16 @@ func GetSessionCookie(req *http.Request) *http.Cookie {
 
 	return c
 }
+
+func (s *Server) BuildNavigationItems(req *http.Request) []*types.Page {
+
+	navigation := make([]*types.Page, 0)
+
+	if s.isLoggedIn(req) {
+		navigation = append(navigation, types.NewPage("Logout", "/logout", types.NORMAL))
+	} else {
+		navigation = append(navigation, types.NewPage("Login", "/login", types.NORMAL))
+	}
+
+	return navigation
+}

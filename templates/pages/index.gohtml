@@ -1,0 +1,29 @@
+{{define "title"}}Semir Ramovic | life of sems | Learn Programming, Coding{{end}}
+
+{{define "body"}}
+<h2 class="text-lg font-semibold">Lorem Ipsum Dolor Sit Amet</h2>
+<br>
+<p></p>
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus a luctus nunc, a sagittis dui. Cras venenatis risus
+vitae porta faucibus. Integer feugiat lobortis mauris, at elementum nisl porta et. Cras viverra feugiat est sit amet
+vehicula. Pellentesque consectetur sodales magna, eget aliquet lacus sagittis ac. Quisque quis tortor id libero suscipit
+posuere ac ut massa. Aliquam quis lectus ex. Curabitur et est eget enim aliquam rhoncus. Vestibulum eleifend magna
+velit, volutpat venenatis ipsum facilisis at. Cras varius diam est, quis viverra ex bibendum ut.
+
+</p>
+<br>
+<p>Pellentesque euismod in sapien at laoreet. Aliquam euismod sem ac convallis blandit. Phasellus semper erat turpis.
+    Praesent ultricies dui ut porta fringilla. Praesent eu aliquam diam. Integer sollicitudin, neque ut elementum
+    iaculis, velit dolor ultricies orci, ut elementum ex tellus sed turpis. Sed mollis elit non ex dictum, ut finibus
+    mauris ullamcorper.</p>
+<br>
+<h2 class="text-xl font-semibold">Posts</h2>
+<br>
+<ul class="list-disc">
+    {{range .BlogPosts}}
+    <li>
+        <a href="blog/{{.ID}}">{{.Title}}</a>
+    </li>
+    {{end}}
+</ul>
+{{end}}

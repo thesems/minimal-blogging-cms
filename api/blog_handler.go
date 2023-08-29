@@ -56,5 +56,5 @@ func (s *Server) ViewPost(w http.ResponseWriter, req *http.Request, postId int) 
 	}
 
 	w.Header().Add("Content-Type", "text/html")
-	s.tpl.ExecuteTemplate(w, "blog-post.gohtml", blogPost)
+	s.renderTemplate(w, req, "blog-post", blogPost)
 }

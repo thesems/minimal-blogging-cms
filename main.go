@@ -7,14 +7,42 @@ import (
 	"lifeofsems-go/storage"
 	"lifeofsems-go/types"
 	"log"
+	"path/filepath"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-var tpl *template.Template
+var templates map[string]*template.Template
 
 func init() {
-	tpl = template.Must(template.ParseGlob("templates/*"))
+	if templates == nil {
+		templates = make(map[string]*template.Template)
+	}
+
+	layoutTemplates, err := filepath.Glob("templates/layouts/*.gohtml")
+	if err != nil {
+		log.Fatal(err)
+	}
+	includeTemplates, err := filepath.Glob("templates/pages/*.gohtml")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mainTmpl := `{{define "main" }} {{ template "base" . }} {{ end }}`
+	mainTemplate := template.New("main")
+	mainTemplate, err = mainTemplate.Parse(mainTmpl)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range includeTemplates {
+		fileName := filepath.Base(file)
+		files := append(layoutTemplates, file)
+		templates[fileName], err = mainTemplate.Clone()
+		if err != nil {
+			log.Fatal(err)
+		}
+		templates[fileName] = template.Must(templates[fileName].ParseFiles(files...))
+	}
 }
 
 func main() {
@@ -47,7 +75,7 @@ func main() {
 		log.Fatal("Store type not found.")
 	}
 
-	server := api.NewServer(*listenAddr, store.(storage.Storage), tpl)
+	server := api.NewServer(*listenAddr, store.(storage.Storage), templates)
 	err := server.Start()
 	if err != nil {
 		log.Fatalln("HTTP server failed with", err)

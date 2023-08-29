@@ -10,12 +10,21 @@ module.exports = {
   plugins: [require("daisyui")],
   //darkMode: "class",
   darkMode: ['class', '[data-theme="dark"]'],
-  // daisyui: {
-  //   themes: false,
-  //   darkTheme: 'dark',
-  //   // base: true,
-  //   // styled: true,
-  //   // utils: true,
-  // }
+  daisyui: {
+    themes: [
+      {
+        dark: {
+          ...require("daisyui/src/theming/themes")["[data-theme=dark]"],
+          "primary": "red",
+          "secondary": "orange"
+        },
+      },
+      "light"
+    ],
+    darkTheme: 'dark',
+    base: true,
+    styled: true,
+    utils: true,
+  }
 }
 

@@ -19,16 +19,23 @@ func (s *Server) HandleIndex(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	user := s.GetUser(w, req)
+
 	data := struct {
 		BlogPosts []*types.BlogPost
-		Pages     []*types.Page
+		Header    types.Header
 	}{
 		BlogPosts: s.store.GetPosts(),
-		Pages: []*types.Page{
-			types.NewPage("Admin", "/login", types.NORMAL),
+		Header: types.Header{
+			Navigation: s.BuildNavigationItems(req),
+			User:       "",
 		},
 	}
 
+	if user != nil {
+		data.Header.User = user.Username
+	}
+
 	w.Header().Add("Content-Type", "text/html")
-	s.tpl.ExecuteTemplate(w, "layout", data)
+	s.renderTemplate(w, req, "index", data)
 }

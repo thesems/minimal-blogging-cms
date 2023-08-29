@@ -1,0 +1,10 @@
+{{define "title"}}A wild error{{end}}
+{{define "body"}}
+<div class="h-full flex flex-col items-center justify-center">
+    <h2 class="text-xl text-bold">
+        {{.Text}} (Status {{.Status}})
+    </h2>
+    <br>
+    <button class="btn btn-primary"><a href="/">Go back</a></button>
+</div>
+{{end}}
