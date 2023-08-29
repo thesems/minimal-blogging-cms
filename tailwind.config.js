@@ -7,21 +7,26 @@ module.exports = {
     },
     extend: {},
   },
+  // darkMode: ['class', '[data-theme="dark"]'],
   plugins: [require("daisyui")],
-  //darkMode: "class",
-  darkMode: ['class', '[data-theme="dark"]'],
   daisyui: {
     themes: [
       {
         dark: {
           ...require("daisyui/src/theming/themes")["[data-theme=dark]"],
-          "primary": "red",
-          "secondary": "orange"
+          "primary": "orange",
+          "secondary": "white"
         },
       },
-      "light"
+      {
+        light: {
+          ...require("daisyui/src/theming/themes")["[data-theme=light]"],
+          "primary": "orange",
+          "secondary": "lightgray",
+        },
+      },
     ],
-    darkTheme: 'dark',
+    darkTheme: "dark",
     base: true,
     styled: true,
     utils: true,
