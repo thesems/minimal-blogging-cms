@@ -3,17 +3,18 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"lifeofsems-go/models"
 	"lifeofsems-go/types"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func (s *Server) HandleBlogPage(w http.ResponseWriter, req *http.Request) {
 	tokens := strings.Split(req.URL.Path, "/")
-
 	if len(tokens) < 3 {
 		s.HandleErrorPage(w, req, http.StatusNotFound)
 		return
@@ -22,7 +23,16 @@ func (s *Server) HandleBlogPage(w http.ResponseWriter, req *http.Request) {
 	// POST on blog/create
 	if tokens[2] == "create" {
 		if req.Method == http.MethodPost {
-			s.CreatePost(w, req)
+
+			hxReq := req.Header.Get("Hx-Request")
+			hxCurrUrl := req.Header.Get("Hx-Current-Url")
+
+			if hxReq == "true" && strings.Contains(hxCurrUrl, "?tab=posts") {
+				s.CreatePostRow(w, req)
+			} else {
+				s.CreatePost(w, req)
+			}
+
 			return
 		} else {
 			s.HandleErrorPage(w, req, http.StatusMethodNotAllowed)
@@ -43,6 +53,7 @@ func (s *Server) HandleBlogPage(w http.ResponseWriter, req *http.Request) {
 		fmt.Println("Method put on blog/{:d}")
 	} else if req.Method == http.MethodDelete {
 		fmt.Println("Method delete on blog/{:d}")
+		s.store.DeletePost(postId)
 	} else {
 		s.HandleErrorPage(w, req, http.StatusMethodNotAllowed)
 	}
@@ -70,28 +81,35 @@ func (s *Server) GetPostPage(w http.ResponseWriter, req *http.Request, postId in
 	s.renderTemplate(w, req, "blog-post", data)
 }
 
-func (s *Server) CreatePost(w http.ResponseWriter, req *http.Request) {
+func (s *Server) ParseCreatePost(w http.ResponseWriter, req *http.Request) *models.BlogPost {
 	err := req.ParseForm()
 	if err != nil {
 		http.Error(w, "Internal server error.", http.StatusInternalServerError)
 		log.Default().Println("[error] failed to parse form data.")
-		return
+		return nil
 	}
 
 	title := req.Form.Get("title")
 	content := req.Form.Get("content")
 
-	post := s.store.CreatePost(&models.BlogPost{
-		Title: title, Content: content,
-	})
+	post := &models.BlogPost{
+		Title: title, Content: content, CreatedAt: time.Now(),
+	}
 
 	valid := models.ValidateBlogPost(post)
 	if !valid {
 		http.Error(w, "Not a valid post.", http.StatusBadRequest)
 		log.Default().Println("[error] post is not valid.")
-		return
+		return nil
 	}
 
+	post = s.store.CreatePost(post)
+	log.Default().Printf("Blog post %s created.\n", title)
+	return post
+}
+
+func (s *Server) CreatePost(w http.ResponseWriter, req *http.Request) {
+	post := s.ParseCreatePost(w, req)
 	message, err := json.Marshal(post)
 	if err != nil {
 		http.Error(w, "Internal server error.", http.StatusInternalServerError)
@@ -106,6 +124,28 @@ func (s *Server) CreatePost(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Internal server error.", http.StatusInternalServerError)
 		log.Default().Println("[error] failed to write json message to HTTP response.")
 		return
+	}
+}
+
+func (s *Server) CreatePostRow(w http.ResponseWriter, req *http.Request) {
+	post := s.ParseCreatePost(w, req)
+	t, err := template.New("posts-table-row").Parse(`
+		<tr>
+			<td>{{.Title}}</td>
+			<td>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>	
+			<th>
+				<button class="btn btn-outline btn-ghost btn-xs">
+					<a href="blog/{{.ID}}">View</a>
+				</button>
+				<button class="btn btn-outline btn-ghost btn-xs">Edit</button>
+				<button class="btn btn-outline btn-error btn-xs" hx-delete="/blog/{{.ID}}"
+					hx-target="closest tr">Delete</button>
+			</th>
+		</tr>
+	`)
+	err = t.Execute(w, post)
+	if err != nil {
+		http.Error(w, "[error] failed to generate the new post row", http.StatusInternalServerError)
 	}
 }
 

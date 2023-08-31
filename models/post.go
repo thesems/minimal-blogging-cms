@@ -22,7 +22,7 @@ func ValidateBlogPost(bp *BlogPost) bool {
 	}
 
 	currYear := time.Now().Year()
-	if bp.CreatedAt.Before(time.Date(currYear, 1, 1, 1, 1, 1, 1, nil)) {
+	if bp.CreatedAt.Before(time.Date(currYear, 1, 1, 1, 1, 1, 1, time.UTC)) {
 		return false
 	}
 
