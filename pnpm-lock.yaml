@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+dependencies:
+  htmx.org:
+    specifier: ^1.9.5
+    version: 1.9.5
+
 devDependencies:
   autoprefixer:
     specifier: ^10.4.15
@@ -1636,6 +1641,10 @@ packages:
       domutils: 2.8.0
       entities: 3.0.1
     dev: true
+
+  /htmx.org@1.9.5:
+    resolution: {integrity: sha512-YUMH1/zOe+75bZnSbtkqwK8wAoTJcgvwVA2W6CXoODBtsg2F9HJIPzM3vzosevrilpV6jLAR6nKapKypBs7v2A==}
+    dev: false
 
   /import-fresh@3.3.0:
     resolution: {integrity: sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==}
