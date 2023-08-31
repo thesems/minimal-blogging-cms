@@ -3,16 +3,20 @@ package storage
 import (
 	"errors"
 	"fmt"
+	"lifeofsems-go/models"
 	"lifeofsems-go/types"
+	"log"
+
+	"github.com/google/uuid"
 )
 
 type MemoryStorage struct {
-	posts   []*types.BlogPost
+	posts   map[int]*models.BlogPost
 	users   []*types.User
 	session map[string]string
 }
 
-func NewMemoryStorage(users []*types.User, posts []*types.BlogPost) *MemoryStorage {
+func NewMemoryStorage(users []*types.User, posts map[int]*models.BlogPost) *MemoryStorage {
 	fmt.Println("Initialized in-memory storage.")
 	return &MemoryStorage{posts, users, make(map[string]string)}
 }
@@ -30,31 +34,55 @@ func (ms *MemoryStorage) GetUsers() []*types.User {
 	return ms.users
 }
 
-func (ms *MemoryStorage) AddUser(user *types.User) {
+func (ms *MemoryStorage) AddUser(user *types.User) *types.User {
 	ms.users = append(ms.users, user)
+	return user
 }
 
 func (ms *MemoryStorage) DeleteUser(user *types.User) {
 }
 
-func (ms *MemoryStorage) GetPost(id int) (*types.BlogPost, error) {
-	for _, post := range ms.posts {
-		if post.ID == id {
-			return post, nil
-		}
+func (ms *MemoryStorage) GetPost(id int) (*models.BlogPost, error) {
+	post, ok := ms.posts[id]
+	if !ok {
+		return nil, errors.New("post not found")
+
 	}
-	return nil, errors.New("post not found")
+	return post, nil
 }
 
-func (ms *MemoryStorage) GetPosts() []*types.BlogPost {
-	return ms.posts
+func (ms *MemoryStorage) GetPosts() []*models.BlogPost {
+	posts := make([]*models.BlogPost, len(ms.posts))
+
+	i := 0
+	for _, post := range ms.posts {
+		posts[i] = post
+		i++
+	}
+	return posts
 }
 
-func (ms *MemoryStorage) AddPost(post *types.BlogPost) {
-	ms.posts = append(ms.posts, post)
+func (ms *MemoryStorage) CreatePost(post *models.BlogPost) *models.BlogPost {
+	post.ID = int(uuid.New().ID())
+
+	_, ok := ms.posts[post.ID]
+	if ok {
+		log.Default().Printf("Post of ID %d already exists.\n", post.ID)
+		return nil
+	}
+
+	ms.posts[post.ID] = post
+	return post
 }
 
-func (ms *MemoryStorage) DeletePost(post *types.BlogPost) {
+func (ms *MemoryStorage) DeletePost(id int) {
+	_, ok := ms.posts[id]
+	if !ok {
+		log.Default().Printf("Post of ID %d does not exists.\n", id)
+		return
+	}
+
+	delete(ms.posts, id)
 }
 
 func (ms *MemoryStorage) GetSession(session string) (string, error) {

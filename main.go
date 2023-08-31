@@ -4,10 +4,12 @@ import (
 	"flag"
 	"html/template"
 	"lifeofsems-go/api"
+	"lifeofsems-go/models"
 	"lifeofsems-go/storage"
 	"lifeofsems-go/types"
 	"log"
 	"path/filepath"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -66,9 +68,9 @@ func main() {
 				types.NewUser("admin", bs, "admin@fe.com", types.Admin),
 				types.NewUser("user", bs, "user@fe.com", types.Normal),
 			},
-			[]*types.BlogPost{
-				{ID: 1, Title: "Post 1", Content: "Content 1"},
-				{ID: 2, Title: "Post 2", Content: "Content 2"},
+			map[int]*models.BlogPost{
+				1: {ID: 1, Title: "Post 1", Content: "Content 1", CreatedAt: time.Now()},
+				2: {ID: 2, Title: "Post 2", Content: "Content 2", CreatedAt: time.Now()},
 			},
 		)
 	default:

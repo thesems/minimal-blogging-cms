@@ -1,6 +1,7 @@
 package api
 
 import (
+	"lifeofsems-go/models"
 	"lifeofsems-go/types"
 	"net/http"
 	"strings"
@@ -22,7 +23,7 @@ func (s *Server) HandleIndex(w http.ResponseWriter, req *http.Request) {
 	user := s.GetUser(w, req)
 
 	data := struct {
-		BlogPosts []*types.BlogPost
+		BlogPosts []*models.BlogPost
 		Header    types.Header
 	}{
 		BlogPosts: s.store.GetPosts(),

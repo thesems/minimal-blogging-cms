@@ -7,19 +7,21 @@
     <title>{{template "title"}}</title>
     <link rel="stylesheet" href="/public/assets/main.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto%20Mono&display=swap">
+    <script src="/public/assets/htmx.min.js"></script>
 </head>
 
 <body class="mt-8 w-9/12 mx-auto">
     <header>
-        {{template "header" .Header}}
+        {{block "header" .Header}}{{end}}
     </header>
     <hr class="my-8">
     <main>
         {{template "body" .}}
     </main>
     <footer class="mt-8">
-        {{template "footer"}}
+        {{block "footer" .}}{{end}}
     </footer>
+    {{template "js" .}}
 </body>
 
 </html>

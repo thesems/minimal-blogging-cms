@@ -1,16 +1,19 @@
 package storage
 
-import "lifeofsems-go/types"
+import (
+	"lifeofsems-go/models"
+	"lifeofsems-go/types"
+)
 
 type Storage interface {
-	GetPost(int) (*types.BlogPost, error)
-	GetPosts() []*types.BlogPost
-	AddPost(post *types.BlogPost)
-	DeletePost(post *types.BlogPost)
+	GetPost(int) (*models.BlogPost, error)
+	GetPosts() []*models.BlogPost
+	CreatePost(post *models.BlogPost) *models.BlogPost
+	DeletePost(int)
 
 	GetUser(username string) (*types.User, error)
 	GetUsers() []*types.User
-	AddUser(user *types.User)
+	AddUser(user *types.User) *types.User
 	DeleteUser(user *types.User)
 
 	GetSession(session string) (string, error)

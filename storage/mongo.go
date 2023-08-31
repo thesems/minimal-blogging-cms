@@ -2,7 +2,7 @@ package storage
 
 import (
 	"fmt"
-	"lifeofsems-go/types"
+	"lifeofsems-go/models"
 )
 
 type MongoStorage struct{}
@@ -12,8 +12,8 @@ func NewMongoStorage() *MongoStorage {
 	return &MongoStorage{}
 }
 
-func (s *MongoStorage) Get(id int) (*types.BlogPost, error) {
-	return &types.BlogPost{
+func (s *MongoStorage) Get(id int) (*models.BlogPost, error) {
+	return &models.BlogPost{
 		ID: 0, Title: "Title", Content: "Content",
 	}, nil
 }

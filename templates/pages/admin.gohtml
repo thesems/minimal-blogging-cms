@@ -1,24 +1,18 @@
 {{define "title"}}Admin Control{{end}}
 {{define "body"}}
 <div class="w-full flex flex-col items-center">
-    <h2 class="text-xl text-semibold">Create a post</h2>
-    <form action="/blog/create" method="POST">
-        <div class="form-control w-full max-w-xs mt-4">
-            <input type="text" placeholder="Title" name="title" id="username"
-                class="input input-bordered w-full max-w-xs" autofocus />
-        </div>
-        <div class="form-control w-full max-w-xs my-4">
-            <input type="text" placeholder="Content" name="content" id="content"
-                class="input input-bordered w-full max-w-xs" />
-        </div>
-        <div class="form-control w-full max-w-xs my-4">
-            <textarea placeholder="Bio"
-                class="textarea textarea-secondary textarea-bordered textarea-lg w-full max-w-xs"></textarea>
-        </div>
-        <div class="text-center">
-            <button type="submit" class="btn btn-primary">Create</button>
-        </div>
-    </form>
-    <br>
+    <div class="tabs">
+        {{ $tab := .ActiveTab }}
+        <a class='tab tab-bordered {{if eq $tab "posts"}}tab-active{{end}}' {{if ne $tab "posts"
+            }}href='/admin?tab=posts' {{end}}>posts</a>
+        <a class='tab tab-bordered {{if eq $tab "users"}}tab-active{{end}}' {{if ne $tab "users"
+            }}href='/admin?tab=users' {{end}}>Users</a>
+    </div>
+    <hr class="my-4">
+    {{if eq $tab "posts"}}
+    {{template "admin.posts" .Posts}}
+    {{else if eq $tab "users"}}
+    {{template "admin.users" .Users}}
+    {{end}}
 </div>
 {{end}}

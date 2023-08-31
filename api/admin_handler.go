@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"lifeofsems-go/models"
 	"lifeofsems-go/types"
 	"log"
 	"net/http"
@@ -29,16 +30,30 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 	if req.Method == http.MethodGet {
 
 		data := struct {
-			Header types.Header
+			Header    types.Header
+			ActiveTab string
+			Posts     []*models.BlogPost
+			Users     []*types.User
 		}{
 			Header: types.Header{
 				Navigation: s.BuildNavigationItems(req),
 				User:       "",
 			},
+			ActiveTab: "posts",
+			Posts:     s.store.GetPosts(),
+			Users:     s.store.GetUsers(),
 		}
+
 		if user != nil {
 			data.Header.User = user.Username
 		}
+
+		req.ParseForm()
+		tab := req.Form.Get("tab")
+		if tab == "users" {
+			data.ActiveTab = "users"
+		}
+
 		s.renderTemplate(w, req, "admin", data)
 
 	} else if req.Method == http.MethodPost {

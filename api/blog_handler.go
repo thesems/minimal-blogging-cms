@@ -1,8 +1,11 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
+	"lifeofsems-go/models"
 	"lifeofsems-go/types"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -35,7 +38,7 @@ func (s *Server) HandleBlogPage(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if req.Method == http.MethodGet {
-		s.ViewPost(w, req, postId)
+		s.GetPostPage(w, req, postId)
 	} else if req.Method == http.MethodPut {
 		fmt.Println("Method put on blog/{:d}")
 	} else if req.Method == http.MethodDelete {
@@ -45,11 +48,7 @@ func (s *Server) HandleBlogPage(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (s *Server) CreatePost(w http.ResponseWriter, req *http.Request) {
-	http.Redirect(w, req, "/", http.StatusSeeOther)
-}
-
-func (s *Server) ViewPost(w http.ResponseWriter, req *http.Request, postId int) {
+func (s *Server) GetPostPage(w http.ResponseWriter, req *http.Request, postId int) {
 	blogPost, err := s.store.GetPost(postId)
 	if err != nil {
 		s.HandleErrorPage(w, req, http.StatusNotFound)
@@ -58,7 +57,7 @@ func (s *Server) ViewPost(w http.ResponseWriter, req *http.Request, postId int) 
 
 	data := struct {
 		Header types.Header
-		Post   *types.BlogPost
+		Post   *models.BlogPost
 	}{
 		Header: types.Header{
 			Navigation: s.BuildNavigationItems(req),
@@ -69,4 +68,75 @@ func (s *Server) ViewPost(w http.ResponseWriter, req *http.Request, postId int) 
 
 	w.Header().Add("Content-Type", "text/html")
 	s.renderTemplate(w, req, "blog-post", data)
+}
+
+func (s *Server) CreatePost(w http.ResponseWriter, req *http.Request) {
+	err := req.ParseForm()
+	if err != nil {
+		http.Error(w, "Internal server error.", http.StatusInternalServerError)
+		log.Default().Println("[error] failed to parse form data.")
+		return
+	}
+
+	title := req.Form.Get("title")
+	content := req.Form.Get("content")
+
+	post := s.store.CreatePost(&models.BlogPost{
+		Title: title, Content: content,
+	})
+
+	valid := models.ValidateBlogPost(post)
+	if !valid {
+		http.Error(w, "Not a valid post.", http.StatusBadRequest)
+		log.Default().Println("[error] post is not valid.")
+		return
+	}
+
+	message, err := json.Marshal(post)
+	if err != nil {
+		http.Error(w, "Internal server error.", http.StatusInternalServerError)
+		log.Default().Println("[error] failed to marshal post as json.")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_, err = w.Write(message)
+	if err != nil {
+		http.Error(w, "Internal server error.", http.StatusInternalServerError)
+		log.Default().Println("[error] failed to write json message to HTTP response.")
+		return
+	}
+}
+
+func (s *Server) GetPost(w http.ResponseWriter, req *http.Request, postId int) {
+	post, err := s.store.GetPost(postId)
+	if err != nil {
+		http.Error(w, "Post could not be found.", http.StatusNotFound)
+		log.Default().Printf("Post ID %d could not be found.\n", postId)
+		return
+	}
+
+	message, err := json.Marshal(post)
+	if err != nil {
+		http.Error(w, "Internal server error.", http.StatusInternalServerError)
+		log.Default().Println("[error] failed to marshal post as json.")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_, err = w.Write(message)
+	if err != nil {
+		http.Error(w, "Internal server error.", http.StatusInternalServerError)
+		log.Default().Println("[error] failed to write json message to HTTP response.")
+		return
+	}
+}
+
+func (s *Server) UpdatePost(w http.ResponseWriter, req *http.Request) {}
+
+func (s *Server) DeletePost(w http.ResponseWriter, req *http.Request, postId int) {
+	s.store.DeletePost(postId)
+	w.WriteHeader(http.StatusOK)
 }

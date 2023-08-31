@@ -1,6 +1,7 @@
 package api
 
 import (
+	"lifeofsems-go/types"
 	"net/http"
 )
 
@@ -8,9 +9,11 @@ func (s *Server) HandleErrorPage(w http.ResponseWriter, req *http.Request, statu
 	data := struct {
 		Status int
 		Text   string
+		Header *types.Header
 	}{
 		Status: status,
 		Text:   "",
+		Header: types.NewHeader(nil, ""),
 	}
 
 	switch status {

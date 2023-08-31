@@ -1,0 +1,35 @@
+{{define "admin.users"}}
+<div class="w-full flex flex-col items-center">
+    <div class="overflow-x-auto">
+        <button class="btn btn-primary btn-sm" onclick="addPostModal.showModal()">Create</button>
+        <table class="table table-lg mt-4">
+            <!-- head -->
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .}}
+                <tr>
+                    <td>
+                        <div>
+                            <div class="font-bold">{{.Username}}</div>
+                        </div>
+                    </td>
+                    <td><span>{{.Email}}</span></td>
+                    <td><span>{{.Role}}</span></td>
+                    <th>
+                        <button class="btn btn-outline btn-ghost btn-xs">View</button>
+                        <button class="btn btn-outline btn-ghost btn-xs">Edit</button>
+                        <button class="btn btn-outline btn-error btn-xs">Delete</button>
+                    </th>
+                </tr>
+                {{end}}
+        </table>
+    </div>
+</div>
+{{end}}
