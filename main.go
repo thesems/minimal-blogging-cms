@@ -24,7 +24,11 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	includeTemplates, err := filepath.Glob("templates/pages/*.gohtml")
+	pageTemplates, err := filepath.Glob("templates/pages/*.gohtml")
+	if err != nil {
+		log.Fatal(err)
+	}
+	componentTemplates, err := filepath.Glob("templates/components/*.gohtml")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,9 +39,14 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, file := range includeTemplates {
+
+	allTemplates := make([]string, 0)
+	allTemplates = append(allTemplates, layoutTemplates...)
+	allTemplates = append(allTemplates, componentTemplates...)
+
+	for _, file := range pageTemplates {
 		fileName := filepath.Base(file)
-		files := append(layoutTemplates, file)
+		files := append(allTemplates, file)
 		templates[fileName], err = mainTemplate.Clone()
 		if err != nil {
 			log.Fatal(err)

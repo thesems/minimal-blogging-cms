@@ -10,9 +10,9 @@
     </div>
     <hr class="my-4">
     {{if eq $tab "posts"}}
-    {{template "admin.posts" .Posts}}
+    {{template "admin.posts" .}}
     {{else if eq $tab "users"}}
-    {{template "admin.users" .Users}}
+    {{template "admin.users" .}}
     {{end}}
 </div>
 {{end}}

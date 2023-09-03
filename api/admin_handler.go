@@ -6,6 +6,7 @@ import (
 	"lifeofsems-go/types"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
@@ -32,6 +33,7 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 		data := struct {
 			Header    types.Header
 			ActiveTab string
+			UpdateID  int
 			Posts     []*models.BlogPost
 			Users     []*models.User
 		}{
@@ -40,6 +42,7 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 				User:       "",
 			},
 			ActiveTab: "posts",
+			UpdateID:  -1,
 			Posts:     s.store.GetPosts(),
 			Users:     s.store.GetUsers(),
 		}
@@ -52,6 +55,14 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 		tab := req.Form.Get("tab")
 		if tab == "users" {
 			data.ActiveTab = "users"
+		}
+		edit := req.Form.Get("edit")
+		if edit != "" {
+			postId, err := strconv.Atoi(edit)
+			if err != nil {
+				http.Error(w, "Failed to parse the edit post id.", http.StatusBadRequest)
+			}
+			data.UpdateID = postId
 		}
 
 		s.renderTemplate(w, req, "admin", data)
