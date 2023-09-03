@@ -6,7 +6,6 @@ import (
 	"lifeofsems-go/api"
 	"lifeofsems-go/models"
 	"lifeofsems-go/storage"
-	"lifeofsems-go/types"
 	"log"
 	"path/filepath"
 	"time"
@@ -64,9 +63,9 @@ func main() {
 		}
 
 		store = storage.NewMemoryStorage(
-			[]*types.User{
-				types.NewUser("admin", bs, "admin@fe.com", types.Admin),
-				types.NewUser("user", bs, "user@fe.com", types.Normal),
+			[]*models.User{
+				models.NewUser("admin", bs, "admin@fe.com", models.Admin),
+				models.NewUser("user", bs, "user@fe.com", models.Normal),
 			},
 			map[int]*models.BlogPost{
 				1: {ID: 1, Title: "Post 1", Content: "Content 1", CreatedAt: time.Now()},

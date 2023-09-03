@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"lifeofsems-go/models"
-	"lifeofsems-go/types"
 	"log"
 
 	"github.com/google/uuid"
@@ -12,16 +11,16 @@ import (
 
 type MemoryStorage struct {
 	posts   map[int]*models.BlogPost
-	users   []*types.User
+	users   []*models.User
 	session map[string]string
 }
 
-func NewMemoryStorage(users []*types.User, posts map[int]*models.BlogPost) *MemoryStorage {
+func NewMemoryStorage(users []*models.User, posts map[int]*models.BlogPost) *MemoryStorage {
 	fmt.Println("Initialized in-memory storage.")
 	return &MemoryStorage{posts, users, make(map[string]string)}
 }
 
-func (ms *MemoryStorage) GetUser(username string) (*types.User, error) {
+func (ms *MemoryStorage) GetUser(username string) (*models.User, error) {
 	for _, user := range ms.users {
 		if user.Username == username {
 			return user, nil
@@ -30,16 +29,16 @@ func (ms *MemoryStorage) GetUser(username string) (*types.User, error) {
 	return nil, errors.New("user not found")
 }
 
-func (ms *MemoryStorage) GetUsers() []*types.User {
+func (ms *MemoryStorage) GetUsers() []*models.User {
 	return ms.users
 }
 
-func (ms *MemoryStorage) AddUser(user *types.User) *types.User {
+func (ms *MemoryStorage) AddUser(user *models.User) *models.User {
 	ms.users = append(ms.users, user)
 	return user
 }
 
-func (ms *MemoryStorage) DeleteUser(user *types.User) {
+func (ms *MemoryStorage) DeleteUser(user *models.User) {
 }
 
 func (ms *MemoryStorage) GetPost(id int) (*models.BlogPost, error) {

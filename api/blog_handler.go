@@ -27,8 +27,12 @@ func (s *Server) HandleBlogPage(w http.ResponseWriter, req *http.Request) {
 			hxReq := req.Header.Get("Hx-Request")
 			hxCurrUrl := req.Header.Get("Hx-Current-Url")
 
-			if hxReq == "true" && strings.Contains(hxCurrUrl, "?tab=posts") {
-				s.CreatePostRow(w, req)
+			if hxReq == "true" {
+				if strings.Contains(hxCurrUrl, "?tab=users") {
+					// users
+				} else {
+					s.CreatePostRow(w, req)
+				}
 			} else {
 				s.CreatePost(w, req)
 			}
@@ -67,14 +71,16 @@ func (s *Server) GetPostPage(w http.ResponseWriter, req *http.Request, postId in
 	}
 
 	data := struct {
-		Header types.Header
-		Post   *models.BlogPost
+		Header      types.Header
+		Post        *models.BlogPost
+		ContentHtml template.HTML
 	}{
 		Header: types.Header{
 			Navigation: s.BuildNavigationItems(req),
 			User:       "",
 		},
-		Post: blogPost,
+		Post:        blogPost,
+		ContentHtml: template.HTML(blogPost.Content),
 	}
 
 	w.Header().Add("Content-Type", "text/html")
@@ -116,6 +122,8 @@ func (s *Server) CreatePost(w http.ResponseWriter, req *http.Request) {
 		log.Default().Println("[error] failed to marshal post as json.")
 		return
 	}
+
+	log.Default().Println("render post in json")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)

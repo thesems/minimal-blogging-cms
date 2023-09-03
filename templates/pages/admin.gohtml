@@ -4,7 +4,7 @@
     <div class="tabs">
         {{ $tab := .ActiveTab }}
         <a class='tab tab-bordered {{if eq $tab "posts"}}tab-active{{end}}' {{if ne $tab "posts"
-            }}href='/admin?tab=posts' {{end}}>posts</a>
+            }}href='/admin?tab=posts' {{end}}>Posts</a>
         <a class='tab tab-bordered {{if eq $tab "users"}}tab-active{{end}}' {{if ne $tab "users"
             }}href='/admin?tab=users' {{end}}>Users</a>
     </div>

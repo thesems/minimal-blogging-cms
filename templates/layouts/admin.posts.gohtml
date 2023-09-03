@@ -48,14 +48,12 @@
                         <textarea placeholder="Content" name="content" id="content"
                             class="textarea textarea-secondary textarea-bordered textarea-lg w-full max-w-xs"></textarea>
                     </div>
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-primary" hx-post="/blog/create"
+                    <div class="text-center flex flex-row">
+                        <button type="submit" class="btn btn-primary btn-sm" hx-post="/blog/create"
                             hx-target="#admin-posts-table tbody" hx-swap="beforeend"
                             onclick="addPostModal.close()">Create</button>
-                        <div class="modal-action">
-                            <!-- if there is a button in form, it will close the modal -->
-                            <button class="btn">Close</button>
-                        </div>
+                        <!-- if there is a button in form, it will close the modal -->
+                        <button class="btn btn-sm ml-4">Close</button>
                     </div>
                 </form>
                 <br>

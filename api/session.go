@@ -1,6 +1,7 @@
 package api
 
 import (
+	"lifeofsems-go/models"
 	"lifeofsems-go/types"
 	"log"
 	"net/http"
@@ -18,13 +19,13 @@ func (s *Server) isLoggedIn(req *http.Request) bool {
 	return err == nil
 }
 
-func (s *Server) GetUser(w http.ResponseWriter, req *http.Request) *types.User {
+func (s *Server) GetUser(w http.ResponseWriter, req *http.Request) *models.User {
 	c, err := req.Cookie("session")
 	if err != nil {
 		return nil
 	}
 
-	var user *types.User
+	var user *models.User
 	username, err := s.store.GetSession(c.Value)
 	if err == nil {
 		user, err = s.store.GetUser(username)

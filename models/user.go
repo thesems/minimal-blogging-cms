@@ -1,4 +1,4 @@
-package types
+package models
 
 type Role int
 
@@ -18,4 +18,19 @@ func NewUser(username string, password []byte, email string, role Role) *User {
 	return &User{
 		Username: username, Password: password, Email: email, Role: role,
 	}
+}
+
+func ValidateUser(user *User) bool {
+	if len(user.Username) == 0 {
+		return false
+	}
+
+	if len(user.Password) <= 6 {
+		return false
+	}
+
+	if len(user.Email) == 0 {
+		return false
+	}
+	return true
 }

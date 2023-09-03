@@ -33,7 +33,7 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 			Header    types.Header
 			ActiveTab string
 			Posts     []*models.BlogPost
-			Users     []*types.User
+			Users     []*models.User
 		}{
 			Header: types.Header{
 				Navigation: s.BuildNavigationItems(req),

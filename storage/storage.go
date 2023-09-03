@@ -2,7 +2,6 @@ package storage
 
 import (
 	"lifeofsems-go/models"
-	"lifeofsems-go/types"
 )
 
 type Storage interface {
@@ -11,10 +10,10 @@ type Storage interface {
 	CreatePost(post *models.BlogPost) *models.BlogPost
 	DeletePost(int)
 
-	GetUser(username string) (*types.User, error)
-	GetUsers() []*types.User
-	AddUser(user *types.User) *types.User
-	DeleteUser(user *types.User)
+	GetUser(username string) (*models.User, error)
+	GetUsers() []*models.User
+	AddUser(user *models.User) *models.User
+	DeleteUser(user *models.User)
 
 	GetSession(session string) (string, error)
 	AddSession(session string, username string)
