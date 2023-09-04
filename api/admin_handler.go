@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"lifeofsems-go/models"
 	"lifeofsems-go/types"
 	"log"
@@ -28,23 +27,24 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 	// 	return
 	// }
 
-	if req.Method == http.MethodGet {
+	log.Default().Println(req.Method)
 
+	if req.Method == http.MethodGet {
 		data := struct {
-			Header    types.Header
-			ActiveTab string
-			UpdateID  int
-			Posts     []*models.BlogPost
-			Users     []*models.User
+			Header     types.Header
+			ActiveTab  string
+			UpdatePost *models.BlogPost
+			Posts      []*models.BlogPost
+			Users      []*models.User
 		}{
 			Header: types.Header{
 				Navigation: s.BuildNavigationItems(req),
 				User:       "",
 			},
-			ActiveTab: "posts",
-			UpdateID:  -1,
-			Posts:     s.store.GetPosts(),
-			Users:     s.store.GetUsers(),
+			ActiveTab:  "posts",
+			UpdatePost: nil,
+			Posts:      s.store.GetPosts(),
+			Users:      s.store.GetUsers(),
 		}
 
 		if user != nil {
@@ -61,17 +61,18 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 			postId, err := strconv.Atoi(edit)
 			if err != nil {
 				http.Error(w, "Failed to parse the edit post id.", http.StatusBadRequest)
+				return
 			}
-			data.UpdateID = postId
+			post, err := s.store.GetPost(postId)
+			if err != nil {
+				http.Error(w, "Failed to find the post with id.", http.StatusBadRequest)
+				return
+			}
+			data.UpdatePost = post
 		}
 
 		s.renderTemplate(w, req, "admin", data)
 
 	} else if req.Method == http.MethodPost {
-		err := req.ParseForm()
-		if err != nil {
-			log.Fatalln(err)
-		}
-		fmt.Println("Got:", req.Form)
 	}
 }
