@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"lifeofsems-go/models"
 	"lifeofsems-go/types"
@@ -20,18 +19,18 @@ func (s *Server) HandleBlogPage(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	hxReq := req.Header.Get("Hx-Request")
+	hxCurrUrl := req.Header.Get("Hx-Current-Url")
+
 	// POST on blog/create
 	if tokens[2] == "create" {
 		if req.Method == http.MethodPost {
-
-			hxReq := req.Header.Get("Hx-Request")
-			hxCurrUrl := req.Header.Get("Hx-Current-Url")
-
 			if hxReq == "true" {
 				if strings.Contains(hxCurrUrl, "?tab=users") {
 					// users
 				} else {
-					s.CreatePostRow(w, req)
+					post := s.ParseCreatePost(w, req)
+					s.CreatePostRow(w, req, post)
 				}
 			} else {
 				s.CreatePost(w, req)
@@ -52,11 +51,23 @@ func (s *Server) HandleBlogPage(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if req.Method == http.MethodGet {
-		s.GetPostPage(w, req, postId)
+		if hxReq == "true" {
+			post, err := s.store.GetPost(postId)
+			if err != nil {
+				http.Error(w, "Could not find post with such ID", http.StatusBadRequest)
+				return
+			}
+			s.CreatePostRow(w, req, post)
+		} else {
+			s.GetPostPage(w, req, postId)
+		}
 	} else if req.Method == http.MethodPut {
-		fmt.Println("Method put on blog/{:d}")
+		post := s.ParsePutPost(w, req)
+		if hxReq == "true" {
+			s.CreatePostRow(w, req, post)
+		}
+
 	} else if req.Method == http.MethodDelete {
-		fmt.Println("Method delete on blog/{:d}")
 		s.store.DeletePost(postId)
 	} else {
 		s.HandleErrorPage(w, req, http.StatusMethodNotAllowed)
@@ -114,6 +125,38 @@ func (s *Server) ParseCreatePost(w http.ResponseWriter, req *http.Request) *mode
 	return post
 }
 
+func (s *Server) ParsePutPost(w http.ResponseWriter, req *http.Request) *models.BlogPost {
+	err := req.ParseForm()
+	if err != nil {
+		http.Error(w, "Internal server error.", http.StatusInternalServerError)
+		log.Default().Println("[error] failed to parse form data.")
+		return nil
+	}
+
+	postIdStr := req.Form.Get("ID")
+	if postIdStr == "" {
+		http.Error(w, "Internal server error.", http.StatusInternalServerError)
+		log.Default().Println("[error] failed to find ID from form data.")
+		return nil
+	}
+	postId, err := strconv.Atoi(postIdStr)
+	if err != nil {
+		http.Error(w, "Internal server error.", http.StatusInternalServerError)
+		log.Default().Println("[error] failed to parse ID from form data.")
+		return nil
+	}
+
+	post, err := s.store.GetPost(postId)
+	title := req.Form.Get("title")
+	if title == "" {
+		http.Error(w, "Internal server error.", http.StatusInternalServerError)
+		log.Default().Println("[error] failed to parse title from form data.")
+		return nil
+	}
+	post.Title = title
+	return post
+}
+
 func (s *Server) CreatePost(w http.ResponseWriter, req *http.Request) {
 	post := s.ParseCreatePost(w, req)
 	message, err := json.Marshal(post)
@@ -135,25 +178,56 @@ func (s *Server) CreatePost(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (s *Server) CreatePostRow(w http.ResponseWriter, req *http.Request) {
-	post := s.ParseCreatePost(w, req)
+func (s *Server) CreatePostRow(w http.ResponseWriter, req *http.Request, post *models.BlogPost) {
 	t, err := template.New("posts-table-row").Parse(`
-		<tr>
-			<td>{{.Title}}</td>
-			<td>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>	
-			<th>
+		<tr hx-target="closest tr" hx-swap="outerHTML">
+			<td>
+				<span>
+					{{.Title}}
+				</span>
+			</td>
+			<td>
+				<span>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</span>
+			</td>
+			<td>
 				<button class="btn btn-outline btn-ghost btn-xs">
 					<a href="blog/{{.ID}}">View</a>
 				</button>
-				<button class="btn btn-outline btn-ghost btn-xs">Edit</button>
-				<button class="btn btn-outline btn-error btn-xs" hx-delete="/blog/{{.ID}}"
+				<button class="btn btn-outline btn-ghost btn-xs" hx-get="admin?edit={{.ID}}"
+					hx-target="closest tr">Edit</button>
+				<button class="btn btn-outline btn-error btn-xs" hx-delete="blog/{{.ID}}"
 					hx-target="closest tr">Delete</button>
-			</th>
+			</td>
 		</tr>
 	`)
 	err = t.Execute(w, post)
 	if err != nil {
 		http.Error(w, "[error] failed to generate the new post row", http.StatusInternalServerError)
+	}
+}
+
+func (s *Server) CreatePostRowEdit(w http.ResponseWriter, req *http.Request, post *models.BlogPost) {
+	t, err := template.New("posts-table-row-edit").Parse(`
+		<tr hx-target="closest tr" hx-swap="outerHTML">
+			<td>
+				<input type="hidden" name="ID" value="{{.ID}}" form="admin-posts-edit-{{.ID}}"/>
+				<input type="text" placeholder="Title" name="title" id="title"
+					class="input input-bordered w-full max-w-xs" value="{{.Title}}" autofocus form="admin-posts-edit-{{.ID}}"/>
+			</td>
+			<td>
+				<span>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</span>
+			</td>
+			<td>
+				<button class="btn btn-outline btn-xs btn-success" form="admin-posts-edit-{{.ID}}">Save</button>
+				<button class="btn btn-outline btn-xs btn-error" hx-get="blog/{{.ID}}?row">Discard</button>
+			</td>
+			<form hx-put="blog/{{.ID}}" id="admin-posts-edit-{{.ID}}"></form>
+		</tr>
+	`)
+
+	err = t.Execute(w, post)
+	if err != nil {
+		http.Error(w, "[error] failed to generate the edit post row", http.StatusInternalServerError)
 	}
 }
 

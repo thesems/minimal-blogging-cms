@@ -69,6 +69,8 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 			data.UpdatePost = post
+			s.CreatePostRowEdit(w, req, post)
+			return
 		}
 
 		s.renderTemplate(w, req, "admin", data)

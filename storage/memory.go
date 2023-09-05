@@ -38,8 +38,7 @@ func (ms *MemoryStorage) AddUser(user *models.User) *models.User {
 	return user
 }
 
-func (ms *MemoryStorage) DeleteUser(user *models.User) {
-}
+func (ms *MemoryStorage) DeleteUser(user *models.User) {}
 
 func (ms *MemoryStorage) GetPost(id int) (*models.BlogPost, error) {
 	post, ok := ms.posts[id]
