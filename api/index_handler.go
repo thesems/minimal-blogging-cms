@@ -21,7 +21,6 @@ func (s *Server) HandleIndex(w http.ResponseWriter, req *http.Request) {
 	}
 
 	user := s.GetUser(w, req)
-
 	data := struct {
 		BlogPosts []*models.BlogPost
 		Header    types.Header

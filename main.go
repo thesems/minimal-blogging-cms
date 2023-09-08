@@ -66,15 +66,18 @@ func main() {
 	case "mongo":
 		store = storage.NewMongoStorage()
 	case "memory":
-		bs, err := bcrypt.GenerateFromPassword([]byte("123"), bcrypt.DefaultCost)
-		if err != nil {
-			log.Fatalln("Internal server error during password encryption.")
+		genPass := func(pw string) []byte {
+			bs, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
+			if err != nil {
+				log.Fatalln("Internal server error during password encryption.")
+			}
+			return bs
 		}
 
 		store = storage.NewMemoryStorage(
-			[]*models.User{
-				models.NewUser("admin", bs, "admin@fe.com", models.Admin),
-				models.NewUser("user", bs, "user@fe.com", models.Normal),
+			map[int]*models.User{
+				1: {ID: 1, Username: "admin", Password: genPass("1234"), Email: "admin@fe.com", Role: models.Admin, CreatedAt: time.Now()},
+				2: {ID: 2, Username: "user", Password: genPass("4321"), Email: "user@fe.com", Role: models.Normal, CreatedAt: time.Now()},
 			},
 			map[int]*models.BlogPost{
 				1: {ID: 1, Title: "Post 1", Content: "Content 1", CreatedAt: time.Now()},

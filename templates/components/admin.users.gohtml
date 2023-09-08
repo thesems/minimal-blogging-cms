@@ -1,0 +1,68 @@
+{{define "admin.users"}}
+<div class="w-full flex flex-col items-center">
+    <div class="overflow-x-auto">
+        <button class="btn btn-primary btn-sm" onclick="addUserModal.showModal()">Create</button>
+        <table class="table table-lg mt-4" id="admin-users-table">
+            <!-- head -->
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Users}}
+                <tr hx-target="closest tr" hx-swap="outerHTML">
+                    <td><span>{{.Username}}</span></td>
+                    <td><span>{{.Email}}</span></td>
+                    <td><span>{{.Role}}</span></td>
+                    <td><span>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</span></td>
+                    <td>
+                        <button class="btn btn-outline btn-ghost btn-xs" hx-get="admin?view=users&edit={{.ID}}"
+                            hx-target="closest tr">Edit</button>
+                        <button class="btn btn-outline btn-error btn-xs" hx-delete="user/{{.ID}}"
+                            hx-target="closest tr">Delete</button>
+                    </td>
+                </tr>
+                {{end}}
+        </table>
+    </div>
+    <dialog id="addUserModal" class="modal">
+        <form method="dialog" class="modal-box">
+            <div class="w-full flex flex-col items-center">
+                <h2 class="text-xl text-semibold">Create a user</h2>
+                <form action="user/create" method="POST">
+                    <div class="form-control w-full max-w-xs mt-4">
+                        <input type="text" placeholder="Username" name="username" id="username"
+                            class="input input-bordered w-full max-w-xs" autofocus />
+                    </div>
+                    <div class="form-control w-full max-w-xs mt-4">
+                        <input type="text" placeholder="Password" name="password" id="password"
+                            class="input input-bordered w-full max-w-xs" autofocus />
+                    </div>
+                    <div class="form-control w-full max-w-xs my-4">
+                        <input placeholder="Email" name="email" id="email"
+                            class="textarea textarea-bordered textarea-lg w-full max-w-xs"></input>
+                    </div>
+                    <div class="mt-4 mb-8">
+                        <label>Role: </label>
+                        <select id="role" name="role" class="select select-bordered">
+                            <option value="normal">Normal</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="text-center flex flex-row">
+                        <button type="submit" class="btn btn-primary btn-sm" hx-post="/user/create"
+                            hx-target="#admin-users-table tbody" hx-swap="beforeend"
+                            onclick="addUserModal.close()">Create</button>
+                        <button class="btn btn-sm ml-4">Close</button>
+                    </div>
+                </form>
+                <br>
+            </div>
+        </form>
+    </dialog>
+</div>
+{{end}}

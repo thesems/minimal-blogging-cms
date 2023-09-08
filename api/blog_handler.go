@@ -20,18 +20,14 @@ func (s *Server) HandleBlogPage(w http.ResponseWriter, req *http.Request) {
 	}
 
 	hxReq := req.Header.Get("Hx-Request")
-	hxCurrUrl := req.Header.Get("Hx-Current-Url")
+	// hxCurrUrl := req.Header.Get("Hx-Current-Url")
 
-	// POST on blog/create
+	// POST on user/create
 	if tokens[2] == "create" {
 		if req.Method == http.MethodPost {
 			if hxReq == "true" {
-				if strings.Contains(hxCurrUrl, "?tab=users") {
-					// users
-				} else {
-					post := s.ParseCreatePost(w, req)
-					s.CreatePostRow(w, req, post)
-				}
+				post := s.ParseCreatePost(w, req)
+				s.CreatePostRow(w, req, post)
 			} else {
 				s.CreatePost(w, req)
 			}

@@ -33,6 +33,7 @@ func (s *Server) Start() error {
 		s.HandleErrorPage(w, req, 404)
 	})
 	http.HandleFunc("/blog/", s.HandleBlogPage)
+	http.HandleFunc("/user/", s.HandleUser)
 	http.HandleFunc("/login", s.HandleLogin)
 	http.HandleFunc("/logout", s.HandleLogout)
 	http.HandleFunc("/admin", s.HandleAdmin)

@@ -44,7 +44,7 @@ func (s *Server) HandleLogin(w http.ResponseWriter, req *http.Request) {
 		username := req.Form.Get("username")
 		password := req.Form.Get("password")
 
-		user, err = s.store.GetUser(username)
+		user, err = s.store.GetUserByUsername(username)
 		if err != nil {
 			data.Text = "User does not exist."
 			s.renderTemplate(w, req, "login", data)
