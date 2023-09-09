@@ -20,10 +20,14 @@ velit, volutpat venenatis ipsum facilisis at. Cras varius diam est, quis viverra
 <h2 class="text-xl font-semibold">Posts</h2>
 <br>
 <ul class="ml-8 list-disc">
+    {{if eq (len .BlogPosts) 0}}
+    <span>No posts yet.</span>
+    {{else}}
     {{range .BlogPosts}}
     <li>
-        <a href="blog/{{.ID}}">{{.Title}}</a>
+        <a href="blog/{{.UrlTitle}}">{{.Title}}</a>
     </li>
+    {{end}}
     {{end}}
 </ul>
 {{end}}

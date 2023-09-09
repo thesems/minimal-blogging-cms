@@ -3,6 +3,7 @@ package api
 import (
 	"lifeofsems-go/models"
 	"lifeofsems-go/types"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -21,11 +22,18 @@ func (s *Server) HandleIndex(w http.ResponseWriter, req *http.Request) {
 	}
 
 	user := s.GetUser(w, req)
+	posts, err := s.store.GetPosts()
+	if err != nil {
+		log.Default().Println(err.Error())
+		s.HandleErrorPage(w, req, 404)
+		return
+	}
+
 	data := struct {
 		BlogPosts []*models.BlogPost
 		Header    types.Header
 	}{
-		BlogPosts: s.store.GetPosts(),
+		BlogPosts: posts,
 		Header: types.Header{
 			Navigation: s.BuildNavigationItems(req),
 			User:       "",

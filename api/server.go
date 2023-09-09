@@ -27,7 +27,6 @@ func NewServer(listenAddr string, storage storage.Storage, tpl map[string]*templ
 func (s *Server) Start() error {
 	fs := http.FileServer(http.Dir("./public"))
 	http.Handle("/public/", http.StripPrefix("/public/", fs))
-
 	http.HandleFunc("/", s.HandleIndex)
 	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, req *http.Request) {
 		s.HandleErrorPage(w, req, 404)

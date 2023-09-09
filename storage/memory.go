@@ -37,7 +37,7 @@ func (ms *MemoryStorage) GetUserByUsername(username string) (*models.User, error
 	return nil, errors.New("user not found")
 }
 
-func (ms *MemoryStorage) GetUsers() []*models.User {
+func (ms *MemoryStorage) GetUsers() ([]*models.User, error) {
 	users := make([]*models.User, len(ms.users))
 
 	i := 0
@@ -46,20 +46,20 @@ func (ms *MemoryStorage) GetUsers() []*models.User {
 		i++
 	}
 
-	return users
+	return users, nil
 }
 
-func (ms *MemoryStorage) AddUser(user *models.User) *models.User {
+func (ms *MemoryStorage) CreateUser(user *models.User) int {
 	user.ID = int(uuid.New().ID())
 
 	_, ok := ms.users[user.ID]
 	if ok {
 		log.Default().Printf("User of ID %d already exists.\n", user.ID)
-		return nil
+		return -1
 	}
 
 	ms.users[user.ID] = user
-	return user
+	return user.ID
 }
 
 func (ms *MemoryStorage) DeleteUser(user *models.User) error {
@@ -79,7 +79,7 @@ func (ms *MemoryStorage) GetPost(id int) (*models.BlogPost, error) {
 	return post, nil
 }
 
-func (ms *MemoryStorage) GetPosts() []*models.BlogPost {
+func (ms *MemoryStorage) GetPosts() ([]*models.BlogPost, error) {
 	posts := make([]*models.BlogPost, len(ms.posts))
 
 	i := 0
@@ -87,20 +87,20 @@ func (ms *MemoryStorage) GetPosts() []*models.BlogPost {
 		posts[i] = post
 		i++
 	}
-	return posts
+	return posts, nil
 }
 
-func (ms *MemoryStorage) CreatePost(post *models.BlogPost) *models.BlogPost {
+func (ms *MemoryStorage) CreatePost(post *models.BlogPost) int {
 	post.ID = int(uuid.New().ID())
 
 	_, ok := ms.posts[post.ID]
 	if ok {
 		log.Default().Printf("Post of ID %d already exists.\n", post.ID)
-		return nil
+		return -1
 	}
 
 	ms.posts[post.ID] = post
-	return post
+	return post.ID
 }
 
 func (ms *MemoryStorage) DeletePost(id int) error {
@@ -122,7 +122,7 @@ func (ms *MemoryStorage) GetSession(session string) (string, error) {
 	return "", errors.New("no session uid")
 }
 
-func (ms *MemoryStorage) AddSession(session string, username string) {
+func (ms *MemoryStorage) CreateSession(session string, username string) {
 	ms.session[session] = username
 }
 

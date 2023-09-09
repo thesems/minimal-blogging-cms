@@ -29,6 +29,15 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 	// }
 
 	if req.Method == http.MethodGet {
+		posts, err := s.store.GetPosts()
+		if err != nil {
+			return
+		}
+		users, err := s.store.GetUsers()
+		if err != nil {
+			return
+		}
+
 		data := struct {
 			Header    types.Header
 			ActiveTab string
@@ -40,8 +49,8 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 				User:       "",
 			},
 			ActiveTab: "posts",
-			Posts:     s.store.GetPosts(),
-			Users:     s.store.GetUsers(),
+			Posts:     posts,
+			Users:     users,
 		}
 
 		if user != nil {

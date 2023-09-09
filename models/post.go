@@ -3,10 +3,12 @@ package models
 import "time"
 
 type BlogPost struct {
-	ID        int       `json:"id"`
-	Title     string    `json:"title"`
-	Content   string    `json:"content"`
-	CreatedAt time.Time `json:"createdat"`
+	ID               int       `json:"id"`
+	Title            string    `json:"title"`
+	Content          string    `json:"content"`
+	ShortDescription string    `json:"shortdescription"`
+	CreatedAt        time.Time `json:"createdat"`
+	UrlTitle         string    `json:"urltitle"`
 }
 
 func ValidateBlogPost(bp *BlogPost) bool {

@@ -6,17 +6,18 @@ import (
 
 type Storage interface {
 	GetPost(int) (*models.BlogPost, error)
-	GetPosts() []*models.BlogPost
-	CreatePost(post *models.BlogPost) *models.BlogPost
+	GetPostBy(map[string]string) (*models.BlogPost, error)
+	GetPosts() ([]*models.BlogPost, error)
+	CreatePost(post *models.BlogPost) int
 	DeletePost(int) error
 
 	GetUser(id int) (*models.User, error)
 	GetUserByUsername(username string) (*models.User, error)
-	GetUsers() []*models.User
-	AddUser(user *models.User) *models.User
+	GetUsers() ([]*models.User, error)
+	CreateUser(user *models.User) int
 	DeleteUser(user *models.User) error
 
 	GetSession(session string) (string, error)
-	AddSession(session string, username string)
+	CreateSession(session string, username string)
 	DeleteSession(session string)
 }

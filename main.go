@@ -57,14 +57,15 @@ func init() {
 
 func main() {
 	listenAddr := flag.String("listenaddr", "49999", "HTTP listen port.")
-	storeType := flag.String("storage", "mongo", "Storage type: mongo, memory.")
+	storeType := flag.String("storage", "postgres", "Storage type: postgres, memory.")
 	flag.Parse()
 
 	var store interface{}
 
 	switch *storeType {
-	case "mongo":
-		store = storage.NewMongoStorage()
+	case "postgres":
+		connStr := "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
+		store = storage.NewPostgresStorage(connStr, "postgres")
 	case "memory":
 		genPass := func(pw string) []byte {
 			bs, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)

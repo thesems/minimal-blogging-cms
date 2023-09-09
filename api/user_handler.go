@@ -29,7 +29,11 @@ func (s *Server) HandleUser(w http.ResponseWriter, req *http.Request) {
 			if user == nil {
 				return
 			}
-			user = s.store.AddUser(user)
+			userId := s.store.CreateUser(user)
+			if userId == -1 {
+				return
+			}
+			user.ID = userId
 			s.RenderUserRow(w, req, user)
 		} else {
 			// Create user
@@ -64,7 +68,11 @@ func (s *Server) HandleUser(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		fmt.Printf("hello3\n")
-		user = s.store.AddUser(user)
+		userId = s.store.CreateUser(user)
+		if userId == -1 {
+			return
+		}
+		user.ID = userId
 		s.RenderUserRow(w, req, user)
 		fmt.Printf("hello\n")
 	case http.MethodDelete:

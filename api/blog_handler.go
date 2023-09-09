@@ -41,13 +41,14 @@ func (s *Server) HandleBlogPage(w http.ResponseWriter, req *http.Request) {
 
 	// GET, PUT, DELETE on blog/{postId}
 	postId, err := strconv.Atoi(tokens[2])
-	if err != nil {
-		s.HandleErrorPage(w, req, http.StatusNotFound)
-		return
-	}
+	isNum := err == nil
 
 	if req.Method == http.MethodGet {
 		if hxReq == "true" {
+			if err != nil {
+				s.HandleErrorPage(w, req, http.StatusNotFound)
+				return
+			}
 			post, err := s.store.GetPost(postId)
 			if err != nil {
 				http.Error(w, "Could not find post with such ID", http.StatusBadRequest)
@@ -55,9 +56,26 @@ func (s *Server) HandleBlogPage(w http.ResponseWriter, req *http.Request) {
 			}
 			s.CreatePostRow(w, req, post)
 		} else {
-			s.GetPostPage(w, req, postId)
+			if !isNum {
+				post, err := s.store.GetPostBy(map[string]string{"urltitle": tokens[2]})
+				if err != nil {
+					http.Error(w, "Could not find post with such title", http.StatusBadRequest)
+					return
+				}
+				postId = post.ID
+				s.GetPostPage(w, req, postId)
+			} else {
+				// JSON representation of user
+			}
+			return
 		}
-	} else if req.Method == http.MethodPut {
+	}
+
+	if err != nil {
+		s.HandleErrorPage(w, req, http.StatusNotFound)
+		return
+	}
+	if req.Method == http.MethodPut {
 		post := s.ParsePutPost(w, req)
 		if hxReq == "true" {
 			s.CreatePostRow(w, req, post)
@@ -116,7 +134,12 @@ func (s *Server) ParseCreatePost(w http.ResponseWriter, req *http.Request) *mode
 		return nil
 	}
 
-	post = s.store.CreatePost(post)
+	postId := s.store.CreatePost(post)
+	if postId == -1 {
+		return nil
+	}
+	post.ID = postId
+
 	log.Default().Printf("Blog post %s created.\n", title)
 	return post
 }

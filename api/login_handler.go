@@ -56,7 +56,7 @@ func (s *Server) HandleLogin(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		s.store.AddSession(c.Value, username)
+		s.store.CreateSession(c.Value, username)
 		http.Redirect(w, req, "/admin", http.StatusSeeOther)
 	}
 }
