@@ -32,45 +32,51 @@ func (s *Server) HandleBlogPage(w http.ResponseWriter, req *http.Request) {
 			} else {
 				s.CreatePost(w, req)
 			}
-
-			return
-		} else {
-			s.HandleErrorPage(w, req, http.StatusMethodNotAllowed)
-			return
 		}
+		return
 	}
 
 	// GET, PUT, DELETE on blog/{postId}
 	postId, err := strconv.Atoi(tokens[2])
 	isNum := err == nil
 
+	err = req.ParseForm()
+	if err != nil {
+		http.Error(w, "Failed to parse URL.", http.StatusBadRequest)
+		log.Default().Println(err.Error())
+		return
+	}
+
+	edit := req.Form.Get("edit")
+	fmt.Println("hello", edit, hxReq, req.URL.Path, tokens, req.Method)
+
 	if req.Method == http.MethodGet {
-		fmt.Println(hxReq, req.URL.Path, tokens)
-		if hxReq == true {
+		var post *models.BlogPost
+		if !isNum {
+			post, err = s.store.GetPostBy(map[string]string{"urltitle": tokens[2]})
+			if err != nil {
+				http.Error(w, "Could not find post with such title", http.StatusBadRequest)
+				log.Default().Println(err.Error())
+				return
+			}
+		} else {
+			post, err = s.store.GetPost(postId)
 			if err != nil {
 				http.Error(w, "Could not find post with such ID", http.StatusBadRequest)
 				log.Default().Println(err.Error())
 				return
 			}
-			post, err := s.store.GetPost(postId)
-			if err != nil {
-				http.Error(w, "Could not find post with such ID", http.StatusBadRequest)
-				log.Default().Println(err.Error())
-				return
-			}
+		}
+
+		if edit != "" {
+			s.GetPostEditPage(w, req, post)
+			return
+		}
+
+		if hxReq == true && tokens[1] == "admin" {
 			s.CreatePostRow(w, req, post)
 		} else {
-			if !isNum {
-				post, err := s.store.GetPostBy(map[string]string{"urltitle": tokens[2]})
-				if err != nil {
-					http.Error(w, "Could not find post with such title", http.StatusBadRequest)
-					return
-				}
-				postId = post.ID
-				s.GetPostPage(w, req, postId)
-			} else {
-				// JSON representation of user
-			}
+			s.GetPostPage(w, req, post.ID)
 		}
 		return
 	}
@@ -81,10 +87,18 @@ func (s *Server) HandleBlogPage(w http.ResponseWriter, req *http.Request) {
 	}
 	if req.Method == http.MethodPut {
 		post := s.ParsePutPost(w, req)
-		if hxReq == true {
-			s.CreatePostRow(w, req, post)
+		if post == nil {
+			http.Error(w, "Failed to parse put request.", http.StatusBadRequest)
+			log.Default().Println(err.Error())
+			return
 		}
-
+		if hxReq == true && edit == "" {
+			s.CreatePostRow(w, req, post)
+		} else if hxReq == true && edit != "" {
+			w.Header().Set("HX-Redirect", fmt.Sprintf("/blog/%s", post.UrlTitle))
+			w.WriteHeader(http.StatusOK)
+			// http.Redirect(w, req, fmt.Sprintf("/blog/%s", post.UrlTitle), http.StatusSeeOther)
+		}
 	} else if req.Method == http.MethodDelete {
 		s.store.DeletePost(postId)
 	} else {
@@ -116,14 +130,25 @@ func (s *Server) GetPostPage(w http.ResponseWriter, req *http.Request, postId in
 	s.renderTemplate(w, req, "blog-post", data)
 }
 
-func (s *Server) ParseCreatePost(w http.ResponseWriter, req *http.Request) *models.BlogPost {
-	err := req.ParseForm()
-	if err != nil {
-		http.Error(w, "Internal server error.", http.StatusInternalServerError)
-		log.Default().Println("[error] failed to parse form data.")
-		return nil
+func (s *Server) GetPostEditPage(w http.ResponseWriter, req *http.Request, post *models.BlogPost) {
+	data := struct {
+		Header      types.Header
+		Post        *models.BlogPost
+		ContentHtml template.HTML
+	}{
+		Header: types.Header{
+			Navigation: s.BuildNavigationItems(req),
+			User:       "",
+		},
+		Post:        post,
+		ContentHtml: template.HTML(post.Content),
 	}
 
+	w.Header().Add("Content-Type", "text/html")
+	s.renderTemplate(w, req, "blog-post-edit", data)
+}
+
+func (s *Server) ParseCreatePost(w http.ResponseWriter, req *http.Request) *models.BlogPost {
 	title := req.Form.Get("title")
 	description := req.Form.Get("description")
 	urlTitle := req.Form.Get("url")
@@ -151,13 +176,6 @@ func (s *Server) ParseCreatePost(w http.ResponseWriter, req *http.Request) *mode
 }
 
 func (s *Server) ParsePutPost(w http.ResponseWriter, req *http.Request) *models.BlogPost {
-	err := req.ParseForm()
-	if err != nil {
-		http.Error(w, "Internal server error.", http.StatusInternalServerError)
-		log.Default().Println("[error] failed to parse form data.")
-		return nil
-	}
-
 	postIdStr := req.Form.Get("ID")
 	if postIdStr == "" {
 		http.Error(w, "Internal server error.", http.StatusInternalServerError)
@@ -173,30 +191,33 @@ func (s *Server) ParsePutPost(w http.ResponseWriter, req *http.Request) *models.
 
 	post, err := s.store.GetPost(postId)
 	title := req.Form.Get("title")
-	if title == "" {
-		http.Error(w, "Internal server error.", http.StatusInternalServerError)
-		log.Default().Println("[error] failed to parse title from form data.")
-		return nil
-	}
 	description := req.Form.Get("description")
-	if title == "" {
-		http.Error(w, "Internal server error.", http.StatusInternalServerError)
-		log.Default().Println("[error] failed to parse description from form data.")
-		return nil
-	}
 	url := req.Form.Get("url")
-	if title == "" {
+	content := req.Form.Get("content")
+	if title == "" && description == "" && url == "" && content == "" {
 		http.Error(w, "Internal server error.", http.StatusInternalServerError)
-		log.Default().Println("[error] failed to parse url from form data.")
+		log.Default().Println("[error] failed to parse form data. Form data empty.")
 		return nil
 	}
-	post.Title = title
-	post.ShortDescription = description
-	post.UrlTitle = url
+
+	if title != "" {
+		post.Title = title
+	}
+	if description != "" {
+		post.ShortDescription = description
+	}
+	if url != "" {
+		post.UrlTitle = url
+	}
+	if content != "" {
+		post.Content = content
+	}
+
 	attrs := map[string]string{
 		"title":            post.Title,
 		"shortdescription": post.ShortDescription,
 		"urltitle":         post.UrlTitle,
+		"content":          post.Content,
 	}
 	err = s.store.UpdatePost(post.ID, attrs)
 	if err != nil {
@@ -204,6 +225,8 @@ func (s *Server) ParsePutPost(w http.ResponseWriter, req *http.Request) *models.
 		log.Default().Println("[error] failed to update the post. Error: ", err.Error())
 		return nil
 	}
+
+	log.Default().Printf("Post %s saved.\n", post.UrlTitle)
 	return post
 }
 
@@ -285,6 +308,14 @@ func (s *Server) CreatePostRowEdit(w http.ResponseWriter, req *http.Request, pos
 	if err != nil {
 		http.Error(w, "[error] failed to generate the edit post row", http.StatusInternalServerError)
 		log.Default().Println(err.Error())
+	}
+}
+
+func (s *Server) CreatePostContent(w http.ResponseWriter, req *http.Request, post *models.BlogPost) {
+	t, err := template.New("post-content").Parse(`<div>{{.Content}}</div>`)
+	err = t.Execute(w, post)
+	if err != nil {
+		http.Error(w, "[error] failed to generate the post content", http.StatusInternalServerError)
 	}
 }
 
