@@ -21,6 +21,7 @@ be implemented non-optimally or incorrectly.
 ## tech
 - Go language
 - Golang's html/template
+- HTMX
 - Tailwind + DaisyUI + Vercel for static building
 
 ## learning resources
