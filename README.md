@@ -1,4 +1,4 @@
-# A light blogging CMS written in Golang
+# micro-blogger with Golang's html/template, htmx, tailwindcss
 
 Note: this is a study project and is only meant to give you ideas or serve
 for educational purposes. For this reason, certain things might
