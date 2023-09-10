@@ -21,7 +21,7 @@ func (s *Server) HandleIndex(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	user := s.GetUser(w, req)
+	user := s.GetUser(req)
 	posts, err := s.store.GetPosts()
 	if err != nil {
 		log.Default().Println(err.Error())

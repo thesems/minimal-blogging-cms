@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"lifeofsems-go/types"
 	"log"
 	"net/http"
@@ -14,7 +13,7 @@ func (s *Server) HandleLogin(w http.ResponseWriter, req *http.Request) {
 
 	c := GetSessionCookie(req)
 	http.SetCookie(w, c)
-	user := s.GetUser(w, req)
+	user := s.GetUser(req)
 
 	data := struct {
 		Header types.Header
@@ -51,11 +50,6 @@ func (s *Server) HandleLogin(w http.ResponseWriter, req *http.Request) {
 			s.renderTemplate(w, req, "login", data)
 			return
 		}
-
-		fmt.Println(password, string(user.Password))
-
-		pw, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
-		fmt.Println(string(pw))
 
 		if bcrypt.CompareHashAndPassword(user.Password, []byte(password)) != nil {
 			s.renderTemplate(w, req, "login", data)

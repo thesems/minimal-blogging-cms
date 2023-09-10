@@ -113,10 +113,17 @@ func (s *Server) GetPostPage(w http.ResponseWriter, req *http.Request, postId in
 		return
 	}
 
+	user := s.GetUser(req)
+	admin := false
+	if user != nil {
+		admin = user.Role == models.Admin
+	}
+
 	data := struct {
 		Header      types.Header
 		Post        *models.BlogPost
 		ContentHtml template.HTML
+		Admin       bool
 	}{
 		Header: types.Header{
 			Navigation: s.BuildNavigationItems(req),
@@ -124,6 +131,7 @@ func (s *Server) GetPostPage(w http.ResponseWriter, req *http.Request, postId in
 		},
 		Post:        blogPost,
 		ContentHtml: template.HTML(blogPost.Content),
+		Admin:       admin,
 	}
 
 	w.Header().Add("Content-Type", "text/html")

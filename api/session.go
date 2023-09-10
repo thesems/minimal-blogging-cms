@@ -19,7 +19,7 @@ func (s *Server) isLoggedIn(req *http.Request) bool {
 	return err == nil
 }
 
-func (s *Server) GetUser(w http.ResponseWriter, req *http.Request) *models.User {
+func (s *Server) GetUser(req *http.Request) *models.User {
 	c, err := req.Cookie("session")
 	if err != nil {
 		return nil
@@ -54,8 +54,12 @@ func (s *Server) BuildNavigationItems(req *http.Request) []*types.Page {
 
 	navigation := make([]*types.Page, 0)
 
-	if s.isLoggedIn(req) {
+	user := s.GetUser(req)
+	if user != nil && user.Role == models.Admin {
 		navigation = append(navigation, types.NewPage("Admin", "/admin", types.NORMAL))
+	}
+
+	if s.isLoggedIn(req) {
 		navigation = append(navigation, types.NewPage("Logout", "/logout", types.NORMAL))
 	} else {
 		navigation = append(navigation, types.NewPage("Login", "/login", types.NORMAL))

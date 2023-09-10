@@ -129,12 +129,16 @@ func (s *Server) ParseUser(w http.ResponseWriter, req *http.Request) *models.Use
 			log.Default().Println("Could find the user with ID.")
 			return nil
 		}
-		fmt.Println(username, password)
 		if username != "" {
 			user.Username = username
 		}
 		if password != "" {
-			user.Password = []byte(password)
+			pw, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+			if err != nil {
+				http.Error(w, "Failed to generate password.", http.StatusInternalServerError)
+				log.Default().Println(err.Error())
+			}
+			user.Password = pw
 		}
 		if email != "" {
 			user.Email = email
@@ -143,10 +147,15 @@ func (s *Server) ParseUser(w http.ResponseWriter, req *http.Request) *models.Use
 			user.Role = models.ToRole(role)
 		}
 	} else {
+		pw, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			http.Error(w, "Failed to generate password.", http.StatusInternalServerError)
+			log.Default().Println(err.Error())
+		}
 		user = &models.User{
 			ID:        0,
 			Username:  username,
-			Password:  []byte(password),
+			Password:  pw,
 			Email:     email,
 			CreatedAt: time.Now(),
 			Role:      models.ToRole(role),

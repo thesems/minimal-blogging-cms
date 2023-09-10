@@ -16,7 +16,7 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 	// 	return
 	// }
 
-	user := s.GetUser(w, req)
+	user := s.GetUser(req)
 	fmt.Println(req.Method, req.URL.String())
 	// if user == nil {
 	// 	http.Redirect(w, req, "/login", http.StatusSeeOther)
