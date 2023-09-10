@@ -20,10 +20,12 @@
                     <td><span>{{.Role}}</span></td>
                     <td><span>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</span></td>
                     <td>
-                        <button class="btn btn-outline btn-ghost btn-xs" hx-get="admin?view=users&edit={{.ID}}"
-                            hx-target="closest tr">Edit</button>
-                        <button class="btn btn-outline btn-error btn-xs" hx-delete="user/{{.ID}}"
-                            hx-target="closest tr">Delete</button>
+                        <div class="flex gap-4">
+                            <button class="btn btn-outline btn-ghost btn-xs" hx-get="admin?view=users&edit={{.ID}}"
+                                hx-target="closest tr">Edit</button>
+                            <button class="btn btn-outline btn-error btn-xs" hx-delete="user/{{.ID}}"
+                                hx-target="closest tr">Delete</button>
+                        </div>
                     </td>
                 </tr>
                 {{end}}

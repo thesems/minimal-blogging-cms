@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func (s *Server) HandleUser(w http.ResponseWriter, req *http.Request) {
@@ -61,22 +63,31 @@ func (s *Server) HandleUser(w http.ResponseWriter, req *http.Request) {
 			w.Write([]byte(user.Username))
 		}
 	case http.MethodPut:
-		fmt.Printf("hello1\n")
-		user := s.ParseUser(w, req)
-		if user == nil {
-			fmt.Printf("hello2\n")
-			return
+		if hxReq {
+			user := s.ParseUser(w, req)
+			if user == nil {
+				return
+			}
+			password, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+			if err != nil {
+				http.Error(w, "Could not parse user put request.", http.StatusInternalServerError)
+				log.Default().Println(err.Error())
+				return
+			}
+			err = s.store.UpdateUser(user.ID, map[string]string{
+				"username": user.Username,
+				"password": string(password),
+				"email":    user.Email,
+				"role":     string(user.Role),
+			})
+			if err != nil {
+				http.Error(w, "Could not parse user put request.", http.StatusInternalServerError)
+				log.Default().Println(err.Error())
+				return
+			}
+			s.RenderUserRow(w, req, user)
 		}
-		fmt.Printf("hello3\n")
-		userId = s.store.CreateUser(user)
-		if userId == -1 {
-			return
-		}
-		user.ID = userId
-		s.RenderUserRow(w, req, user)
-		fmt.Printf("hello\n")
 	case http.MethodDelete:
-		fmt.Println("Get")
 		user, err := s.store.GetUser(userId)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Could not find user with ID %d.", userId), http.StatusBadRequest)
@@ -107,9 +118,6 @@ func (s *Server) ParseUser(w http.ResponseWriter, req *http.Request) *models.Use
 	role := req.Form.Get("role")
 
 	var user *models.User
-
-	fmt.Println("ID:", id)
-
 	if id != "" {
 		idInt, err := strconv.Atoi(id)
 		if err != nil {
@@ -144,8 +152,6 @@ func (s *Server) ParseUser(w http.ResponseWriter, req *http.Request) *models.Use
 			Role:      models.ToRole(role),
 		}
 	}
-
-	fmt.Println(user.Username, user.Password, user.Email, user.Role)
 
 	if !models.ValidateUser(user) {
 		http.Error(w, "User values are not correctly defined.", http.StatusBadRequest)
@@ -199,9 +205,11 @@ func (s *Server) RenderUserRow(w http.ResponseWriter, req *http.Request, user *m
 			<td><span>{{.Role}}</span></td>
 			<td><span>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</span></td>
 			<td>
-				<button class="btn btn-outline btn-ghost btn-xs" hx-get="admin/?view=posts&edit={{.ID}}"
-					hx-target="closest tr">Edit</button>
-				<button class="btn btn-outline btn-error btn-xs" hx-delete="user/{{.ID}}" hx-target="closest tr">Delete</button>
+           		<div class="flex gap-4">
+					<button class="btn btn-outline btn-ghost btn-xs" hx-get="admin?view=users&edit={{.ID}}"
+						hx-target="closest tr">Edit</button>
+					<button class="btn btn-outline btn-error btn-xs" hx-delete="user/{{.ID}}" hx-target="closest tr">Delete</button>
+				</div>
 			</td>
 		</tr>
 	`)

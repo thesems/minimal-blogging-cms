@@ -9,17 +9,16 @@ type BlogPost struct {
 	ShortDescription string    `json:"shortdescription"`
 	CreatedAt        time.Time `json:"createdat"`
 	UrlTitle         string    `json:"urltitle"`
+	Draft            bool      `json:"draft"`
 }
 
 func ValidateBlogPost(bp *BlogPost) bool {
 	titleLen := len(bp.Title)
-	contentLen := len(bp.Content)
-
 	if titleLen == 0 || titleLen > 120 {
 		return false
 	}
 
-	if contentLen == 0 {
+	if len(bp.UrlTitle) == 0 {
 		return false
 	}
 

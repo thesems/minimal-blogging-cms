@@ -28,7 +28,7 @@ func (ms *MemoryStorage) GetUser(id int) (*models.User, error) {
 	return user, nil
 }
 
-func (ms *MemoryStorage) GetUserByUsername(username string) (*models.User, error) {
+func (ms *MemoryStorage) GetUserBy(username string) (*models.User, error) {
 	for _, user := range ms.users {
 		if user.Username == username {
 			return user, nil

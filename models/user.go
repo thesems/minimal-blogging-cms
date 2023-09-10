@@ -17,8 +17,8 @@ type User struct {
 	Username  string
 	Password  []byte
 	Email     string
-	Role      Role
 	CreatedAt time.Time
+	Role      Role
 }
 
 func ValidateUser(user *User) bool {

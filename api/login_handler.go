@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"lifeofsems-go/types"
 	"log"
 	"net/http"
@@ -44,12 +45,17 @@ func (s *Server) HandleLogin(w http.ResponseWriter, req *http.Request) {
 		username := req.Form.Get("username")
 		password := req.Form.Get("password")
 
-		user, err = s.store.GetUserByUsername(username)
+		user, err = s.store.GetUserBy(map[string]string{"username": username})
 		if err != nil {
 			data.Text = "User does not exist."
 			s.renderTemplate(w, req, "login", data)
 			return
 		}
+
+		fmt.Println(password, string(user.Password))
+
+		pw, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
+		fmt.Println(string(pw))
 
 		if bcrypt.CompareHashAndPassword(user.Password, []byte(password)) != nil {
 			s.renderTemplate(w, req, "login", data)

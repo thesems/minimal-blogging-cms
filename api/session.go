@@ -28,7 +28,7 @@ func (s *Server) GetUser(w http.ResponseWriter, req *http.Request) *models.User 
 	var user *models.User
 	username, err := s.store.GetSession(c.Value)
 	if err == nil {
-		user, err = s.store.GetUserByUsername(username)
+		user, err = s.store.GetUserBy(map[string]string{"username": username})
 		if err != nil {
 			log.Fatalln("Session exists for username but user does not.")
 		}
