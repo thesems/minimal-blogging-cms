@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"lifeofsems-go/models"
 	"lifeofsems-go/types"
 	"net/http"
@@ -11,22 +10,21 @@ import (
 func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "text/html")
 
-	// if !s.isLoggedIn(req) {
-	// 	http.Redirect(w, req, "/login", http.StatusSeeOther)
-	// 	return
-	// }
+	if !s.isLoggedIn(req) {
+		http.Redirect(w, req, "/login", http.StatusSeeOther)
+		return
+	}
 
 	user := s.GetUser(req)
-	fmt.Println(req.Method, req.URL.String())
-	// if user == nil {
-	// 	http.Redirect(w, req, "/login", http.StatusSeeOther)
-	// 	return
-	// }
+	if user == nil {
+		http.Redirect(w, req, "/login", http.StatusSeeOther)
+		return
+	}
 
-	// if user.Role != types.Admin {
-	// 	s.HandleErrorPage(w, req, 401)
-	// 	return
-	// }
+	if user.Role != models.Admin {
+		s.HandleErrorPage(w, req, 401)
+		return
+	}
 
 	if req.Method == http.MethodGet {
 		posts, err := s.store.GetPosts()

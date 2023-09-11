@@ -19,7 +19,7 @@ type Storage interface {
 	DeleteUser(user *models.User) error
 	UpdateUser(id int, setAttrs map[string]string) error
 
-	GetSession(session string) (string, error)
+	GetSession(session string) (*models.Session, error)
 	CreateSession(session string, username string)
 	DeleteSession(session string)
 }

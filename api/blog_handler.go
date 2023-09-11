@@ -22,6 +22,12 @@ func (s *Server) HandleBlogPage(w http.ResponseWriter, req *http.Request) {
 
 	hxReq := req.Header.Get("Hx-Request") == "true"
 	// hxCurrUrl := req.Header.Get("Hx-Current-Url")
+	err := req.ParseForm()
+	if err != nil {
+		http.Error(w, "Failed to parse URL.", http.StatusBadRequest)
+		log.Default().Println(err.Error())
+		return
+	}
 
 	// POST on user/create
 	if tokens[2] == "create" {
@@ -39,13 +45,6 @@ func (s *Server) HandleBlogPage(w http.ResponseWriter, req *http.Request) {
 	// GET, PUT, DELETE on blog/{postId}
 	postId, err := strconv.Atoi(tokens[2])
 	isNum := err == nil
-
-	err = req.ParseForm()
-	if err != nil {
-		http.Error(w, "Failed to parse URL.", http.StatusBadRequest)
-		log.Default().Println(err.Error())
-		return
-	}
 
 	edit := req.Form.Get("edit")
 	fmt.Println("hello", edit, hxReq, req.URL.Path, tokens, req.Method)
@@ -73,7 +72,9 @@ func (s *Server) HandleBlogPage(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		if hxReq == true && tokens[1] == "admin" {
+		row := req.Form.Get("row") == "1"
+
+		if hxReq == true && row {
 			s.CreatePostRow(w, req, post)
 		} else {
 			s.GetPostPage(w, req, post.ID)
@@ -306,7 +307,7 @@ func (s *Server) CreatePostRowEdit(w http.ResponseWriter, req *http.Request, pos
 			<td><span>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</span></td>
 			<td>
 				<button class="btn btn-outline btn-xs btn-success" form="admin-posts-edit-{{.ID}}">Save</button>
-				<button class="btn btn-outline btn-xs btn-error" hx-get="blog/{{.ID}}?row">Discard</button>
+				<button class="btn btn-outline btn-xs btn-error" hx-get="blog/{{.ID}}?row=1">Discard</button>
 			</td>
 			<form hx-put="blog/{{.ID}}" id="admin-posts-edit-{{.ID}}"></form>
 		</tr>

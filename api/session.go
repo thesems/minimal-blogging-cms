@@ -26,9 +26,9 @@ func (s *Server) GetUser(req *http.Request) *models.User {
 	}
 
 	var user *models.User
-	username, err := s.store.GetSession(c.Value)
+	session, err := s.store.GetSession(c.Value)
 	if err == nil {
-		user, err = s.store.GetUserBy(map[string]string{"username": username})
+		user, err = s.store.GetUserBy(map[string]string{"username": session.Username})
 		if err != nil {
 			log.Fatalln("Session exists for username but user does not.")
 		}
@@ -42,8 +42,9 @@ func GetSessionCookie(req *http.Request) *http.Cookie {
 
 	if err != nil {
 		return &http.Cookie{
-			Name:  "session",
-			Value: uuid.NewString(),
+			Name:   "session",
+			Value:  uuid.NewString(),
+			MaxAge: 60 * 60 * 2, // 2 hours
 		}
 	}
 

@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"log"
+	"time"
+)
 
 type BlogPost struct {
 	ID               int       `json:"id"`
@@ -15,10 +18,12 @@ type BlogPost struct {
 func ValidateBlogPost(bp *BlogPost) bool {
 	titleLen := len(bp.Title)
 	if titleLen == 0 || titleLen > 120 {
+		log.Default().Printf("[error] title is %d characters long.\n", titleLen)
 		return false
 	}
 
 	if len(bp.UrlTitle) == 0 {
+		log.Default().Printf("[error] urlTitle is %d characters long.\n", len(bp.UrlTitle))
 		return false
 	}
 

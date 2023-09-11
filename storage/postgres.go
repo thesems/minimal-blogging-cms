@@ -7,14 +7,14 @@ import (
 	"lifeofsems-go/models"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 )
 
 type PostgresStorage struct {
-	db      *sql.DB
-	session map[string]string
+	db *sql.DB
 }
 
 func NewPostgresStorage(connStr string, driver string) *PostgresStorage {
@@ -23,7 +23,7 @@ func NewPostgresStorage(connStr string, driver string) *PostgresStorage {
 		log.Fatal("Cannot connect to the database.")
 	}
 	fmt.Printf("SQL %s storage initialized.\n", driver)
-	return &PostgresStorage{db, make(map[string]string)}
+	return &PostgresStorage{db}
 }
 
 func (s *PostgresStorage) GetPost(id int) (*models.BlogPost, error) {
@@ -143,7 +143,7 @@ func (s *PostgresStorage) GetUser(id int) (*models.User, error) {
 	}
 
 	var user models.User
-	switch err := rows.Scan(&user.ID, &user.Username, &user.Password, &user.Email, &user.CreatedAt, &user.Role); err {
+	switch err := rows.Scan(&user.ID, &user.Username, &user.Firstname, &user.Lastname, &user.Password, &user.Email, &user.CreatedAt, &user.Role); err {
 	case sql.ErrNoRows:
 		log.Default().Println("No such user row was found.")
 	case nil:
@@ -169,7 +169,7 @@ func (s *PostgresStorage) GetUserBy(query map[string]string) (*models.User, erro
 	}
 
 	var user models.User
-	switch err := rows.Scan(&user.ID, &user.Username, &user.Password, &user.Email, &user.CreatedAt, &user.Role); err {
+	switch err := rows.Scan(&user.ID, &user.Username, &user.Firstname, &user.Lastname, &user.Password, &user.Email, &user.CreatedAt, &user.Role); err {
 	case sql.ErrNoRows:
 		log.Default().Println("No such user row was found.")
 	case nil:
@@ -190,7 +190,7 @@ func (s *PostgresStorage) GetUsers() ([]*models.User, error) {
 	users := make([]*models.User, 0)
 	for rows.Next() {
 		var user models.User
-		err = rows.Scan(&user.ID, &user.Username, &user.Password, &user.Email, &user.CreatedAt, &user.Role)
+		err = rows.Scan(&user.ID, &user.Username, &user.Firstname, &user.Lastname, &user.Password, &user.Email, &user.CreatedAt, &user.Role)
 		if err != nil {
 			return nil, err
 		}
@@ -205,8 +205,8 @@ func (s *PostgresStorage) GetUsers() ([]*models.User, error) {
 
 func (s *PostgresStorage) CreateUser(user *models.User) int {
 	id := int(uuid.New().ID())
-	_, err := s.db.Exec("INSERT INTO cms.user(id, username, password, email, createdat, role) VALUES ($1, $2, $3, $4, $5, $6)",
-		id, user.Username, user.Password, user.Email, user.CreatedAt, user.Role,
+	_, err := s.db.Exec("INSERT INTO cms.user(id, username, firstname, lastname, password, email, createdat, role) VALUES ($1, $2, $3, $4, $5, $6)",
+		id, user.Username, user.Firstname, user.Lastname, user.Password, user.Email, user.CreatedAt, user.Role,
 	)
 	if err != nil {
 		log.Default().Println("Failed to insert new user. Error:", err.Error())
@@ -228,18 +228,27 @@ func (s *PostgresStorage) DeleteUser(user *models.User) error {
 	return nil
 }
 
-func (s *PostgresStorage) GetSession(session string) (string, error) {
-	username, ok := s.session[session]
-	if ok {
-		return username, nil
+func (s *PostgresStorage) GetSession(session_id string) (*models.Session, error) {
+	row := s.db.QueryRow("SELECT * FROM cms.session WHERE id=$1", session_id)
+	var session models.Session
+	err := row.Scan(&session.ID, &session.Username, &session.LastActivity)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("could not find session %s", session_id))
 	}
-	return "", errors.New("no session uid")
+	return &session, nil
 }
 
-func (s *PostgresStorage) CreateSession(session string, username string) {
-	s.session[session] = username
+func (s *PostgresStorage) CreateSession(session_id string, username string) {
+	lastActivity := time.Now()
+	_, err := s.db.Exec("INSERT INTO cms.session (id,username,lastactivity) VALUES ($1,$2,$3)", session_id, username, lastActivity)
+	if err != nil {
+		log.Default().Fatalln(err.Error())
+	}
 }
 
-func (s *PostgresStorage) DeleteSession(session string) {
-	delete(s.session, session)
+func (s *PostgresStorage) DeleteSession(session_id string) {
+	_, err := s.db.Exec("DELETE FROM cms.session WHERE id=$1", session_id)
+	if err != nil {
+		log.Default().Fatalln(err.Error())
+	}
 }

@@ -29,11 +29,18 @@ func (s *Server) HandleIndex(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	releasedPosts := make([]*models.BlogPost, 0)
+	for _, post := range posts {
+		if !post.Draft {
+			releasedPosts = append(releasedPosts, post)
+		}
+	}
+
 	data := struct {
 		BlogPosts []*models.BlogPost
 		Header    types.Header
 	}{
-		BlogPosts: posts,
+		BlogPosts: releasedPosts,
 		Header: types.Header{
 			Navigation: s.BuildNavigationItems(req),
 			User:       "",

@@ -15,6 +15,8 @@ const (
 type User struct {
 	ID        int
 	Username  string
+	Firstname string
+	Lastname  string
 	Password  []byte
 	Email     string
 	CreatedAt time.Time

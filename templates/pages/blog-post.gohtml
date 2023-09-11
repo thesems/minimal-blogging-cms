@@ -3,7 +3,9 @@
 <div class="flex justify-between">
     <h2 class="text-xl text-semibold mb-8">{{.Post.Title}}</h2>
     {{if eq .Admin true}}
-    <button class="btn btn-primary btn-sm">Edit</button>
+    <button class="btn btn-primary btn-sm">
+        <a href="?edit=1">Edit</a>
+    </button>
     {{end}}
 </div>
 <div>{{.ContentHtml}}</div>
