@@ -21,7 +21,7 @@ func (s *Server) HandleIndex(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	user := s.GetUser(req)
+	user := s.GetUser(w, req)
 	posts, err := s.store.GetPosts()
 	if err != nil {
 		log.Default().Println(err.Error())
@@ -42,7 +42,7 @@ func (s *Server) HandleIndex(w http.ResponseWriter, req *http.Request) {
 	}{
 		BlogPosts: releasedPosts,
 		Header: types.Header{
-			Navigation: s.BuildNavigationItems(req),
+			Navigation: s.BuildNavigationItems(w, req),
 			User:       "",
 		},
 	}

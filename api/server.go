@@ -6,21 +6,24 @@ import (
 	"html/template"
 	"lifeofsems-go/storage"
 	"net/http"
+	"time"
 )
 
 type Server struct {
-	listenAddr string
-	store      storage.Storage
-	tpl        map[string]*template.Template
+	listenAddr          string
+	store               storage.Storage
+	tpl                 map[string]*template.Template
+	lastSessionCleaning time.Time
 }
 
 func NewServer(listenAddr string, storage storage.Storage, tpl map[string]*template.Template) *Server {
 	fmt.Println("Start HTTP server on port", listenAddr)
 
 	return &Server{
-		listenAddr: listenAddr,
-		store:      storage,
-		tpl:        tpl,
+		listenAddr:          listenAddr,
+		store:               storage,
+		tpl:                 tpl,
+		lastSessionCleaning: time.Now().Add(-time.Second * 60 * 60),
 	}
 }
 
@@ -36,6 +39,8 @@ func (s *Server) Start() error {
 	http.HandleFunc("/login", s.HandleLogin)
 	http.HandleFunc("/logout", s.HandleLogout)
 	http.HandleFunc("/admin", s.HandleAdmin)
+
+	go s.CleanSessions()
 	return http.ListenAndServe(":"+s.listenAddr, nil)
 }
 

@@ -76,7 +76,7 @@ func (s *PostgresStorage) GetPostBy(query map[string]string) (*models.BlogPost, 
 func (s *PostgresStorage) GetPosts() ([]*models.BlogPost, error) {
 	rows, err := s.db.Query("SELECT * FROM cms.post")
 	if err != nil {
-		return nil, errors.New("Failed to query all posts.")
+		return nil, err
 	}
 	defer rows.Close()
 	posts := make([]*models.BlogPost, 0)
@@ -205,7 +205,7 @@ func (s *PostgresStorage) GetUsers() ([]*models.User, error) {
 
 func (s *PostgresStorage) CreateUser(user *models.User) int {
 	id := int(uuid.New().ID())
-	_, err := s.db.Exec("INSERT INTO cms.user(id, username, firstname, lastname, password, email, createdat, role) VALUES ($1, $2, $3, $4, $5, $6)",
+	_, err := s.db.Exec("INSERT INTO cms.user(id, username, firstname, lastname, password, email, createdat, role) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
 		id, user.Username, user.Firstname, user.Lastname, user.Password, user.Email, user.CreatedAt, user.Role,
 	)
 	if err != nil {
@@ -236,6 +236,22 @@ func (s *PostgresStorage) GetSession(session_id string) (*models.Session, error)
 		return nil, errors.New(fmt.Sprintf("could not find session %s", session_id))
 	}
 	return &session, nil
+}
+
+func (s *PostgresStorage) GetSessions() ([]*models.Session, error) {
+	rows, err := s.db.Query("SELECT * FROM cms.session")
+	if err != nil {
+		return nil, err
+	}
+	sessions := make([]*models.Session, 0)
+	for rows.Next() {
+		var session models.Session
+		err := rows.Scan(&session.ID, &session.Username, &session.LastActivity)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return sessions, nil
 }
 
 func (s *PostgresStorage) CreateSession(session_id string, username string) {

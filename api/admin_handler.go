@@ -15,7 +15,7 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	user := s.GetUser(req)
+	user := s.GetUser(w, req)
 	if user == nil {
 		http.Redirect(w, req, "/login", http.StatusSeeOther)
 		return
@@ -43,7 +43,7 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 			Users     []*models.User
 		}{
 			Header: types.Header{
-				Navigation: s.BuildNavigationItems(req),
+				Navigation: s.BuildNavigationItems(w, req),
 				User:       "",
 			},
 			ActiveTab: "posts",

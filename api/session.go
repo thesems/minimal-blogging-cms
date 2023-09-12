@@ -5,9 +5,13 @@ import (
 	"lifeofsems-go/types"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 )
+
+const expiryTime = 2 * 60 * 60
+const cleaningTime = 1 * 60 * 60
 
 func (s *Server) isLoggedIn(req *http.Request) bool {
 	c, err := req.Cookie("session")
@@ -19,11 +23,14 @@ func (s *Server) isLoggedIn(req *http.Request) bool {
 	return err == nil
 }
 
-func (s *Server) GetUser(req *http.Request) *models.User {
+func (s *Server) GetUser(w http.ResponseWriter, req *http.Request) *models.User {
 	c, err := req.Cookie("session")
 	if err != nil {
 		return nil
 	}
+
+	c.MaxAge = expiryTime
+	http.SetCookie(w, c)
 
 	var user *models.User
 	session, err := s.store.GetSession(c.Value)
@@ -39,23 +46,41 @@ func (s *Server) GetUser(req *http.Request) *models.User {
 
 func GetSessionCookie(req *http.Request) *http.Cookie {
 	c, err := req.Cookie("session")
-
 	if err != nil {
 		return &http.Cookie{
 			Name:   "session",
 			Value:  uuid.NewString(),
-			MaxAge: 60 * 60 * 2, // 2 hours
+			MaxAge: expiryTime,
 		}
 	}
-
 	return c
 }
 
-func (s *Server) BuildNavigationItems(req *http.Request) []*types.Page {
+func (s *Server) CleanSessions() {
+	if time.Now().Sub(s.lastSessionCleaning) > cleaningTime {
+		sessions, err := s.store.GetSessions()
+		if err != nil {
+			log.Default().Println("No cleaning was performed. Error:", err.Error())
+			return
+		}
+		for _, session := range sessions {
+			if time.Now().Sub(session.LastActivity) > (time.Second * expiryTime) {
+				s.store.DeleteSession(session.ID)
+			}
+		}
+
+		s.lastSessionCleaning = time.Now()
+	}
+
+	time.Sleep(time.Second * 60)
+	go s.CleanSessions()
+}
+
+func (s *Server) BuildNavigationItems(w http.ResponseWriter, req *http.Request) []*types.Page {
 
 	navigation := make([]*types.Page, 0)
 
-	user := s.GetUser(req)
+	user := s.GetUser(w, req)
 	if user != nil && user.Role == models.Admin {
 		navigation = append(navigation, types.NewPage("Admin", "/admin", types.NORMAL))
 	}

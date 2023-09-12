@@ -114,7 +114,7 @@ func (s *Server) GetPostPage(w http.ResponseWriter, req *http.Request, postId in
 		return
 	}
 
-	user := s.GetUser(req)
+	user := s.GetUser(w, req)
 	admin := false
 	if user != nil {
 		admin = user.Role == models.Admin
@@ -127,7 +127,7 @@ func (s *Server) GetPostPage(w http.ResponseWriter, req *http.Request, postId in
 		Admin       bool
 	}{
 		Header: types.Header{
-			Navigation: s.BuildNavigationItems(req),
+			Navigation: s.BuildNavigationItems(w, req),
 			User:       "",
 		},
 		Post:        blogPost,
@@ -146,7 +146,7 @@ func (s *Server) GetPostEditPage(w http.ResponseWriter, req *http.Request, post 
 		ContentHtml template.HTML
 	}{
 		Header: types.Header{
-			Navigation: s.BuildNavigationItems(req),
+			Navigation: s.BuildNavigationItems(w, req),
 			User:       "",
 		},
 		Post:        post,
@@ -271,7 +271,7 @@ func (s *Server) CreatePostRow(w http.ResponseWriter, req *http.Request, post *m
 			<td>
            		<div class="flex gap-4">
 					<button class="btn btn-outline btn-ghost btn-xs">
-						<a href="blog/{{.ID}}">View</a>
+						<a href="blog/{{.UrlTitle}}">View</a>
 					</button>
 					<button class="btn btn-outline btn-ghost btn-xs" hx-get="admin?edit={{.ID}}"
 						hx-target="closest tr">Edit</button>

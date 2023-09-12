@@ -13,14 +13,14 @@ func (s *Server) HandleLogin(w http.ResponseWriter, req *http.Request) {
 
 	c := GetSessionCookie(req)
 	http.SetCookie(w, c)
-	user := s.GetUser(req)
+	user := s.GetUser(w, req)
 
 	data := struct {
 		Header types.Header
 		Text   string
 	}{
 		Header: types.Header{
-			Navigation: s.BuildNavigationItems(req),
+			Navigation: s.BuildNavigationItems(w, req),
 			User:       "",
 		},
 		Text: "",
