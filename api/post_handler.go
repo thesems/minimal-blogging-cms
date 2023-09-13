@@ -135,7 +135,7 @@ func (s *Server) GetPostPage(w http.ResponseWriter, req *http.Request, postId in
 	}
 
 	w.Header().Add("Content-Type", "text/html")
-	s.renderTemplate(w, req, "blog-post", data)
+	s.renderTemplate(w, req, "post", data)
 }
 
 func (s *Server) GetPostEditPage(w http.ResponseWriter, req *http.Request, post *models.Post) {
@@ -153,7 +153,7 @@ func (s *Server) GetPostEditPage(w http.ResponseWriter, req *http.Request, post 
 	}
 
 	w.Header().Add("Content-Type", "text/html")
-	s.renderTemplate(w, req, "blog-post-edit", data)
+	s.renderTemplate(w, req, "post-edit", data)
 }
 
 func (s *Server) ParseCreatePost(w http.ResponseWriter, req *http.Request) *models.Post {
