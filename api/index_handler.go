@@ -37,13 +37,17 @@ func (s *Server) HandleIndex(w http.ResponseWriter, req *http.Request) {
 	}
 
 	data := struct {
-		BlogPosts []*models.Post
-		Header    types.Header
+		Posts  []*models.Post
+		Header types.Header
+		Meta   []types.Meta
 	}{
-		BlogPosts: releasedPosts,
+		Posts: releasedPosts,
 		Header: types.Header{
 			Navigation: s.BuildNavigationItems(w, req),
 			User:       "",
+		},
+		Meta: []types.Meta{
+			{Src: "hello"},
 		},
 	}
 
