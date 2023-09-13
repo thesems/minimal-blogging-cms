@@ -44,7 +44,7 @@ func (s *Server) HandleLogin(w http.ResponseWriter, req *http.Request) {
 		username := req.Form.Get("username")
 		password := req.Form.Get("password")
 
-		user, err = s.store.GetUserBy(map[string]string{"username": username})
+		user, err = s.appEnv.Users.GetBy(map[string]string{"username": username})
 		if err != nil {
 			data.Text = "User does not exist."
 			s.renderTemplate(w, req, "login", data)
@@ -56,7 +56,7 @@ func (s *Server) HandleLogin(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		s.store.CreateSession(c.Value, username)
+		s.appEnv.Sessions.Create(c.Value, username)
 		http.Redirect(w, req, "/admin", http.StatusSeeOther)
 	}
 }

@@ -18,7 +18,7 @@ func (s *Server) HandleLogout(w http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			log.Fatalln("User should be logged in, but cookie not found.")
 		}
-		s.store.DeleteSession(c.Value)
+		s.appEnv.Sessions.Delete(c.Value)
 		c.Value = ""
 		c.MaxAge = -1
 		http.SetCookie(w, c)

@@ -27,11 +27,11 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if req.Method == http.MethodGet {
-		posts, err := s.store.GetPosts()
+		posts, err := s.appEnv.Posts.All()
 		if err != nil {
 			return
 		}
-		users, err := s.store.GetUsers()
+		users, err := s.appEnv.Users.All()
 		if err != nil {
 			return
 		}
@@ -39,7 +39,7 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 		data := struct {
 			Header    types.Header
 			ActiveTab string
-			Posts     []*models.BlogPost
+			Posts     []*models.Post
 			Users     []*models.User
 		}{
 			Header: types.Header{
@@ -70,14 +70,14 @@ func (s *Server) HandleAdmin(w http.ResponseWriter, req *http.Request) {
 			}
 
 			if data.ActiveTab == "posts" {
-				post, err := s.store.GetPost(resId)
+				post, err := s.appEnv.Posts.Get(resId)
 				if err != nil {
 					http.Error(w, "Failed to find the post with id.", http.StatusBadRequest)
 					return
 				}
 				s.CreatePostRowEdit(w, req, post)
 			} else if data.ActiveTab == "users" {
-				user, err := s.store.GetUser(resId)
+				user, err := s.appEnv.Users.Get(resId)
 				if err != nil {
 					http.Error(w, "Failed to find the user with id.", http.StatusBadRequest)
 					return

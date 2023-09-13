@@ -13,7 +13,7 @@
     <button class="btn btn-sm btn-primary" type="submit" form="admin-post-full-edit-{{.Post.ID}}">Save</button>
 </div>
 <div>
-    <textarea class="textarea textarea-bordered textarea-md" style="width: 100%;" name="content"
+    <textarea class="textarea textarea-bordered textarea-md" style="width: 100%; min-height: 250px;" name="content"
         form="admin-post-full-edit-{{.Post.ID}}">{{.ContentHtml}}</textarea>
     <input type="hidden" id="ID" name="ID" value="{{.Post.ID}}" form="admin-post-full-edit-{{.Post.ID}}" />
     <form hx-put="/blog/{{.Post.ID}}?edit=1" id="admin-post-full-edit-{{.Post.ID}}"></form>

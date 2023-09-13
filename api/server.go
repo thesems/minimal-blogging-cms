@@ -4,24 +4,24 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
-	"lifeofsems-go/storage"
+	"lifeofsems-go/env"
 	"net/http"
 	"time"
 )
 
 type Server struct {
 	listenAddr          string
-	store               storage.Storage
+	appEnv              env.Env
 	tpl                 map[string]*template.Template
 	lastSessionCleaning time.Time
 }
 
-func NewServer(listenAddr string, storage storage.Storage, tpl map[string]*template.Template) *Server {
+func NewServer(listenAddr string, appEnv env.Env, tpl map[string]*template.Template) *Server {
 	fmt.Println("Start HTTP server on port", listenAddr)
 
 	return &Server{
 		listenAddr:          listenAddr,
-		store:               storage,
+		appEnv:              appEnv,
 		tpl:                 tpl,
 		lastSessionCleaning: time.Now().Add(-time.Second * 60 * 60),
 	}

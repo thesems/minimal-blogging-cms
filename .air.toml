@@ -3,7 +3,7 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-args_bin = ["-storage", "postgres"]
+args_bin = []
 bin = "./bin/app"
 cmd = "go build -o ./bin/app ."
 delay = 0

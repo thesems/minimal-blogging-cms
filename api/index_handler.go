@@ -22,14 +22,14 @@ func (s *Server) HandleIndex(w http.ResponseWriter, req *http.Request) {
 	}
 
 	user := s.GetUser(w, req)
-	posts, err := s.store.GetPosts()
+	posts, err := s.appEnv.Posts.All()
 	if err != nil {
 		log.Default().Println(err.Error())
 		s.HandleErrorPage(w, req, 404)
 		return
 	}
 
-	releasedPosts := make([]*models.BlogPost, 0)
+	releasedPosts := make([]*models.Post, 0)
 	for _, post := range posts {
 		if !post.Draft {
 			releasedPosts = append(releasedPosts, post)
@@ -37,7 +37,7 @@ func (s *Server) HandleIndex(w http.ResponseWriter, req *http.Request) {
 	}
 
 	data := struct {
-		BlogPosts []*models.BlogPost
+		BlogPosts []*models.Post
 		Header    types.Header
 	}{
 		BlogPosts: releasedPosts,

@@ -31,7 +31,7 @@ func (s *Server) HandleUser(w http.ResponseWriter, req *http.Request) {
 			if user == nil {
 				return
 			}
-			userId := s.store.CreateUser(user)
+			userId := s.appEnv.Users.Create(user)
 			if userId == -1 {
 				return
 			}
@@ -51,7 +51,7 @@ func (s *Server) HandleUser(w http.ResponseWriter, req *http.Request) {
 
 	switch req.Method {
 	case http.MethodGet:
-		user, err := s.store.GetUser(userId)
+		user, err := s.appEnv.Users.Get(userId)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Could not find user of ID %d.", userId), http.StatusBadRequest)
 			return
@@ -74,7 +74,7 @@ func (s *Server) HandleUser(w http.ResponseWriter, req *http.Request) {
 				log.Default().Println(err.Error())
 				return
 			}
-			err = s.store.UpdateUser(user.ID, map[string]string{
+			err = s.appEnv.Users.Update(user.ID, map[string]string{
 				"username": user.Username,
 				"password": string(password),
 				"email":    user.Email,
@@ -88,12 +88,12 @@ func (s *Server) HandleUser(w http.ResponseWriter, req *http.Request) {
 			s.RenderUserRow(w, req, user)
 		}
 	case http.MethodDelete:
-		user, err := s.store.GetUser(userId)
+		user, err := s.appEnv.Users.Get(userId)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Could not find user with ID %d.", userId), http.StatusBadRequest)
 			return
 		}
-		err = s.store.DeleteUser(user)
+		err = s.appEnv.Users.Delete(user)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Could not delete user with ID %d.", userId), http.StatusBadRequest)
 			return
@@ -124,7 +124,7 @@ func (s *Server) ParseUser(w http.ResponseWriter, req *http.Request) *models.Use
 			log.Default().Println("Failed to convert user ID to integer.")
 			return nil
 		}
-		user, err = s.store.GetUser(idInt)
+		user, err = s.appEnv.Users.Get(idInt)
 		if err != nil {
 			log.Default().Println("Could find the user with ID.")
 			return nil

@@ -19,7 +19,7 @@ func (s *Server) isLoggedIn(req *http.Request) bool {
 		return false
 	}
 
-	_, err = s.store.GetSession(c.Value)
+	_, err = s.appEnv.Sessions.Get(c.Value)
 	return err == nil
 }
 
@@ -33,9 +33,9 @@ func (s *Server) GetUser(w http.ResponseWriter, req *http.Request) *models.User 
 	http.SetCookie(w, c)
 
 	var user *models.User
-	session, err := s.store.GetSession(c.Value)
+	session, err := s.appEnv.Sessions.Get(c.Value)
 	if err == nil {
-		user, err = s.store.GetUserBy(map[string]string{"username": session.Username})
+		user, err = s.appEnv.Users.GetBy(map[string]string{"username": session.Username})
 		if err != nil {
 			log.Fatalln("Session exists for username but user does not.")
 		}
@@ -58,14 +58,14 @@ func GetSessionCookie(req *http.Request) *http.Cookie {
 
 func (s *Server) CleanSessions() {
 	if time.Now().Sub(s.lastSessionCleaning) > cleaningTime {
-		sessions, err := s.store.GetSessions()
+		sessions, err := s.appEnv.Sessions.All()
 		if err != nil {
 			log.Default().Println("No cleaning was performed. Error:", err.Error())
 			return
 		}
 		for _, session := range sessions {
 			if time.Now().Sub(session.LastActivity) > (time.Second * expiryTime) {
-				s.store.DeleteSession(session.ID)
+				s.appEnv.Sessions.Delete(session.ID)
 			}
 		}
 
