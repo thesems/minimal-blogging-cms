@@ -1,4 +1,4 @@
-# micro-blogger with Golang's html/template, htmx, tailwindcss
+# micro-blogger - powered by Golang + HTMX!
 
 Note: this is a study project and is only meant to give you ideas or serve
 for educational purposes. For this reason, certain things might
@@ -23,6 +23,7 @@ be implemented non-optimally or incorrectly.
 - Golang's html/template
 - HTMX
 - Tailwind + DaisyUI + Vercel for static building
+- Postgresql
 
 ## learning resources
 - [Boredstack repository from Anthdm](https://github.com/anthdm/boredstack/)
