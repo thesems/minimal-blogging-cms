@@ -56,9 +56,9 @@ func main() {
 	flag.Parse()
 
 	connUrl := "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
-	appEnv := env.New(connUrl, "postgres")
+	appEnv := env.New(connUrl, "postgres", templates)
 
-	server := api.NewServer(*listenAddr, *appEnv, templates)
+	server := api.NewServer(*listenAddr, *appEnv)
 	err := server.Start()
 	if err != nil {
 		log.Fatalln("HTTP server failed with", err)

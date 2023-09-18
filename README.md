@@ -11,12 +11,13 @@ be implemented non-optimally or incorrectly.
 - css,html,js static building with: ```npm run dev```
 
 ## features
-- make build system
-- main page + page per blog post
-- admin panel with login/logout
-- create, update, delete posts
-- light/dark mode
-- footer
+- minimalistic blogging web-app
+- admin panel for managing posts and users
+- HTMX to reduce full-page rerenderings
+- postgres database
+- MVC code structure
+- UI components with DaisyUI and tailwind.
+- light and dark mode supported.
 
 ## tech
 - Go language

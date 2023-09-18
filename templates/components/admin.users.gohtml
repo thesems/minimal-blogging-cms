@@ -35,7 +35,7 @@
         <form method="dialog" class="modal-box">
             <div class="w-full flex flex-col items-center">
                 <h2 class="text-xl text-semibold">Create a user</h2>
-                <form action="user/create" method="POST">
+                <form action="user" method="POST">
                     <div class="form-control w-full max-w-xs mt-4">
                         <input type="text" placeholder="Username" name="username" id="username"
                             class="input input-bordered w-full max-w-xs" autofocus />
@@ -56,7 +56,7 @@
                         </select>
                     </div>
                     <div class="text-center flex flex-row">
-                        <button type="submit" class="btn btn-primary btn-sm" hx-post="/user/create"
+                        <button type="submit" class="btn btn-primary btn-sm" hx-post="/user"
                             hx-target="#admin-users-table tbody" hx-swap="beforeend"
                             onclick="addUserModal.close()">Create</button>
                         <button class="btn btn-sm ml-4">Close</button>

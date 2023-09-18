@@ -5,7 +5,7 @@
     <span>
         {{if eq .Post.Draft true}}
         Draft
-        <button class="btn btn-sm" hx-put="/blog/{{.Post.ID}}" name="draft" value="false">Release</button>
+        <button class="btn btn-sm" hx-put="/post/{{.Post.ID}}" name="draft" value="false">Release</button>
         {{else}}
         Released
         {{end}}
@@ -16,7 +16,7 @@
     <textarea class="textarea textarea-bordered textarea-md" style="width: 100%; min-height: 250px;" name="content"
         form="admin-post-full-edit-{{.Post.ID}}">{{.ContentHtml}}</textarea>
     <input type="hidden" id="ID" name="ID" value="{{.Post.ID}}" form="admin-post-full-edit-{{.Post.ID}}" />
-    <form hx-put="/blog/{{.Post.ID}}?edit=1" id="admin-post-full-edit-{{.Post.ID}}"></form>
+    <form hx-put="/post/{{.Post.ID}}?edit" id="admin-post-full-edit-{{.Post.ID}}"></form>
 </div>
 <br>
 <hr class=" my-4">
