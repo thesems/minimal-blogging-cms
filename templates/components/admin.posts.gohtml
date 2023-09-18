@@ -43,11 +43,11 @@
                     <td>
                         <div class="flex gap-4">
                             <button class="btn btn-outline btn-ghost btn-xs">
-                                <a href="blog/{{.UrlTitle}}">View</a>
+                                <a href="post/{{.UrlTitle}}">View</a>
                             </button>
                             <button class="btn btn-outline btn-ghost btn-xs" hx-get="admin?edit={{.ID}}"
                                 hx-target="closest tr">Edit</button>
-                            <button class="btn btn-outline btn-error btn-xs" hx-delete="blog/{{.ID}}"
+                            <button class="btn btn-outline btn-error btn-xs" hx-delete="post/{{.ID}}"
                                 hx-target="closest tr">Delete</button>
                         </div>
                     </td>
@@ -59,7 +59,7 @@
         <form method="dialog" class="modal-box">
             <div class="w-full flex flex-col items-center">
                 <h2 class="text-xl text-semibold">Create a post</h2>
-                <form action="blog/create" method="POST">
+                <form action="post/create" method="POST">
                     <div class="form-control w-full max-w-xs mt-4">
                         <input type="text" placeholder="Title" name="title" id="title"
                             class="input input-bordered w-full max-w-xs" autofocus />
@@ -73,7 +73,7 @@
                             class="input input-bordered w-full max-w-xs" autofocus />
                     </div>
                     <div class="text-center flex flex-row mt-8">
-                        <button type="submit" class="btn btn-primary btn-sm" hx-post="/blog/create"
+                        <button type="submit" class="btn btn-primary btn-sm" hx-post="/post/create"
                             hx-target="#admin-posts-table tbody" hx-swap="beforeend"
                             onclick="addPostModal.close()">Create</button>
                         <button class="btn btn-sm ml-4">Close</button>

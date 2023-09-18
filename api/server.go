@@ -3,49 +3,45 @@ package api
 import (
 	"errors"
 	"fmt"
-	"html/template"
 	"lifeofsems-go/env"
 	"net/http"
-	"time"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 type Server struct {
-	listenAddr          string
-	appEnv              env.Env
-	tpl                 map[string]*template.Template
-	lastSessionCleaning time.Time
+	listenAddr string
+	appEnv     env.Env
 }
 
-func NewServer(listenAddr string, appEnv env.Env, tpl map[string]*template.Template) *Server {
+func NewServer(listenAddr string, appEnv env.Env) *Server {
 	fmt.Println("Start HTTP server on port", listenAddr)
 
 	return &Server{
-		listenAddr:          listenAddr,
-		appEnv:              appEnv,
-		tpl:                 tpl,
-		lastSessionCleaning: time.Now().Add(-time.Second * 60 * 60),
+		listenAddr: listenAddr,
+		appEnv:     appEnv,
 	}
 }
 
 func (s *Server) Start() error {
-	fs := http.FileServer(http.Dir("./public"))
-	http.Handle("/public/", http.StripPrefix("/public/", fs))
-	http.HandleFunc("/", s.HandleIndex)
-	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, req *http.Request) {
-		s.HandleErrorPage(w, req, 404)
-	})
-	http.HandleFunc("/blog/", s.HandleBlogPage)
-	http.HandleFunc("/user/", s.HandleUser)
-	http.HandleFunc("/login", s.HandleLogin)
-	http.HandleFunc("/logout", s.HandleLogout)
-	http.HandleFunc("/admin", s.HandleAdmin)
+	router := httprouter.New()
+	router.NotFound = http.HandlerFunc(s.NotFound)
+	router.ServeFiles("/public/*filepath", http.Dir("./public"))
+	router.GET("/", s.IndexGet)
+	router.GET("/post/:post", s.PostGet)
+	router.POST("/post/:post", s.PostPost) // lol
+	router.PUT("/post/:post", s.PostPut)
+	router.DELETE("/post/:post", s.PostDelete)
+	router.GET("/login", s.LoginGet)
+	router.POST("/login", s.LoginPost)
+	router.GET("/admin", s.AdminGet)
 
 	go s.CleanSessions()
-	return http.ListenAndServe(":"+s.listenAddr, nil)
+	return http.ListenAndServe(":"+s.listenAddr, router)
 }
 
-func (s *Server) renderTemplate(w http.ResponseWriter, req *http.Request, name string, data interface{}) error {
-	tmpl, ok := s.tpl[name+".gohtml"]
+func renderTemplate(appEnv env.Env, w http.ResponseWriter, name string, data interface{}) error {
+	tmpl, ok := appEnv.Tpl[name+".gohtml"]
 	if !ok {
 		err := errors.New("template not found")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -55,7 +51,6 @@ func (s *Server) renderTemplate(w http.ResponseWriter, req *http.Request, name s
 	err := tmpl.Execute(w, data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		err := errors.New("template execution failed")
 		return err
 	}
 
