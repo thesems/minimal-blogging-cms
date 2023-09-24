@@ -112,16 +112,16 @@ func (m PostModel) All() ([]*Post, error) {
 	}
 	return posts, nil
 }
-func (m PostModel) Create(post *Post) int {
+func (m PostModel) Create(post *Post) (int, error) {
 	id := int(uuid.New().ID())
 	_, err := m.DB.Exec("INSERT INTO cms.post(id, title, content, shortdescription, createdat, urltitle, draft) VALUES ($1, $2, $3, $4, $5, $6, $7)",
 		id, post.Title, post.Content, post.ShortDescription, post.CreatedAt, post.UrlTitle, post.Draft,
 	)
 	if err != nil {
 		log.Default().Println("Failed to insert new post. Error:", err.Error())
-		return -1
+		return -1, err
 	}
-	return id
+	return id, nil
 }
 
 func (m PostModel) Delete(id int) error {

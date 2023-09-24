@@ -7,99 +7,100 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
+	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (s *Server) HandleUser(w http.ResponseWriter, req *http.Request) {
-	tokens := strings.Split(req.URL.Path, "/")
-	fmt.Println(req.Method, req.URL.String())
+func (s *Server) UserGet(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+	userId, err := strconv.Atoi(params.ByName("userId"))
+	if err != nil {
+		log.Default().Println(err.Error())
+		http.Error(w, "Could not find the userId.", http.StatusBadRequest)
+		return
+	}
 
-	if len(tokens) < 3 {
-		s.HandleErrorPage(w, req, http.StatusNotFound)
+	user, err := s.appEnv.Users.Get(userId)
+	if err != nil {
+		log.Default().Println(err.Error())
+		http.Error(w, fmt.Sprintf("Could not find user of ID %d.", userId), http.StatusBadRequest)
 		return
 	}
 
 	hxReq := req.Header.Get("Hx-Request") == "true"
-	// hxCurrUrl := req.Header.Get("Hx-Current-Url")
-
-	if tokens[2] == "create" && req.Method == http.MethodPost {
-		if hxReq {
-			user := s.ParseUser(w, req)
-			if user == nil {
-				return
-			}
-			userId := s.appEnv.Users.Create(user)
-			if userId == -1 {
-				return
-			}
-			user.ID = userId
-			s.RenderUserRow(w, req, user)
-		} else {
-			// Create user
-		}
-		return
+	isRow := req.URL.Query().Has("row")
+	if hxReq && isRow {
+		s.RenderUserRow(w, req, user)
 	}
+}
 
-	userId, err := strconv.Atoi(tokens[2])
+func (s *Server) UserPost(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+	hxReq := req.Header.Get("Hx-Request") == "true"
+	if hxReq {
+		user := s.ParseUser(w, req)
+		if user == nil {
+			log.Default().Println("User not found.")
+			http.Error(w, "User not found.", http.StatusBadRequest)
+			return
+		}
+		userId := s.appEnv.Users.Create(user)
+		if userId == -1 {
+			log.Default().Println("User not created.")
+			http.Error(w, "User not created.", http.StatusBadRequest)
+			return
+		}
+		user.ID = userId
+		s.RenderUserRow(w, req, user)
+	}
+}
+
+func (s *Server) UserPut(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+	hxReq := req.Header.Get("Hx-Request") == "true"
+	if hxReq {
+		user := s.ParseUser(w, req)
+		if user == nil {
+			log.Default().Println("User not found.")
+			http.Error(w, "User not found.", http.StatusBadRequest)
+			return
+		}
+		password, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		if err != nil {
+			http.Error(w, "Could not parse user put request.", http.StatusInternalServerError)
+			log.Default().Println(err.Error())
+			return
+		}
+		err = s.appEnv.Users.Update(user.ID, map[string]string{
+			"username": user.Username,
+			"password": string(password),
+			"email":    user.Email,
+			"role":     string(user.Role),
+		})
+		if err != nil {
+			http.Error(w, "Could not parse user put request.", http.StatusInternalServerError)
+			log.Default().Println(err.Error())
+			return
+		}
+		s.RenderUserRow(w, req, user)
+	}
+}
+
+func (s *Server) UserDelete(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+	userId, err := strconv.Atoi(params.ByName("userId"))
 	if err != nil {
-		s.HandleErrorPage(w, req, http.StatusNotFound)
+		log.Default().Println(err.Error())
+		http.Error(w, "Could not find the userId.", http.StatusBadRequest)
 		return
 	}
-
-	switch req.Method {
-	case http.MethodGet:
-		user, err := s.appEnv.Users.Get(userId)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Could not find user of ID %d.", userId), http.StatusBadRequest)
-			return
-		}
-		if hxReq {
-			s.RenderUserRow(w, req, user)
-		} else {
-			// TODO: Get user as json
-			w.Write([]byte(user.Username))
-		}
-	case http.MethodPut:
-		if hxReq {
-			user := s.ParseUser(w, req)
-			if user == nil {
-				return
-			}
-			password, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-			if err != nil {
-				http.Error(w, "Could not parse user put request.", http.StatusInternalServerError)
-				log.Default().Println(err.Error())
-				return
-			}
-			err = s.appEnv.Users.Update(user.ID, map[string]string{
-				"username": user.Username,
-				"password": string(password),
-				"email":    user.Email,
-				"role":     string(user.Role),
-			})
-			if err != nil {
-				http.Error(w, "Could not parse user put request.", http.StatusInternalServerError)
-				log.Default().Println(err.Error())
-				return
-			}
-			s.RenderUserRow(w, req, user)
-		}
-	case http.MethodDelete:
-		user, err := s.appEnv.Users.Get(userId)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Could not find user with ID %d.", userId), http.StatusBadRequest)
-			return
-		}
-		err = s.appEnv.Users.Delete(user)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Could not delete user with ID %d.", userId), http.StatusBadRequest)
-			return
-		}
-	default:
-		s.HandleErrorPage(w, req, http.StatusMethodNotAllowed)
+	user, err := s.appEnv.Users.Get(userId)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Could not find user with ID %d.", userId), http.StatusBadRequest)
+		return
+	}
+	err = s.appEnv.Users.Delete(user)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Could not delete user with ID %d.", userId), http.StatusBadRequest)
+		return
 	}
 }
 

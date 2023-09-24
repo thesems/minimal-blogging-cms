@@ -8,7 +8,7 @@ import (
 func (s *Server) HandleLogout(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "text/html")
 
-	if !s.isLoggedIn(req) {
+	if !isLoggedIn(s.appEnv, req) {
 		http.Redirect(w, req, "/", http.StatusSeeOther)
 		return
 	}
