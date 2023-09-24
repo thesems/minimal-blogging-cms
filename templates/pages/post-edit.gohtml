@@ -1,16 +1,22 @@
 {{define "title"}}{{.Title}}{{end}}
 {{define "body"}}
-<div class="flex gap-4">
-    <h2 class="text-xl text-semibold mb-8">Edit: {{.Post.Title}}</h2>
-    <span>
-        {{if eq .Post.Draft true}}
-        Draft
-        <button class="btn btn-sm" hx-put="/post/{{.Post.ID}}" name="draft" value="false">Release</button>
-        {{else}}
-        Released
-        {{end}}
-    </span>
-    <button class="btn btn-sm btn-primary" type="submit" form="admin-post-full-edit-{{.Post.ID}}">Save</button>
+<div class="flex flex-col mb-8">
+    <div class="flex gap-4">
+        <h2 class="text-xl text-semibold">Edit: {{.Post.Title}}</h2>
+        <span>
+            {{if eq .Post.Draft true}}
+            Draft
+            <button class="btn btn-sm" form="admin-post-full-edit-{{.Post.ID}}" name="draft"
+                value="false">Release</button>
+            {{else}}
+            Released
+            <button class="btn btn-sm" form="admin-post-full-edit-{{.Post.ID}}" name="draft"
+                value="true">Unpublish</button>
+            {{end}}
+        </span>
+        <button class="btn btn-sm btn-primary" type="submit" form="admin-post-full-edit-{{.Post.ID}}">Save</button>
+    </div>
+    <span class="text-sm">Note: releasing/unpublish will automatically save your work.</span>
 </div>
 <div>
     <textarea class="textarea textarea-bordered textarea-md" style="width: 100%; min-height: 250px;" name="content"
@@ -20,5 +26,5 @@
 </div>
 <br>
 <hr class=" my-4">
-<span><a href="/">Go Back</a></span>
+<span><a href="/post/{{.Post.Url}}">Go Back</a></span>
 {{end}}

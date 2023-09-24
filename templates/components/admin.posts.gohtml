@@ -34,7 +34,7 @@
                     </td>
                     <td>
                         <span>
-                            {{.UrlTitle}}
+                            {{.Url}}
                         </span>
                     </td>
                     <td>
@@ -43,7 +43,7 @@
                     <td>
                         <div class="flex gap-4">
                             <button class="btn btn-outline btn-ghost btn-xs">
-                                <a href="post/{{.UrlTitle}}">View</a>
+                                <a href="post/{{.Url}}">View</a>
                             </button>
                             <button class="btn btn-outline btn-ghost btn-xs" hx-get="admin?edit={{.ID}}"
                                 hx-target="closest tr">Edit</button>

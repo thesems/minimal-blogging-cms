@@ -16,7 +16,7 @@ type Post struct {
 	Content          string    `json:"content"`
 	ShortDescription string    `json:"shortdescription"`
 	CreatedAt        time.Time `json:"createdat"`
-	UrlTitle         string    `json:"urltitle"`
+	Url              string    `json:"url"`
 	Draft            bool      `json:"draft"`
 }
 
@@ -31,8 +31,8 @@ func ValidatePost(bp *Post) bool {
 		return false
 	}
 
-	if len(bp.UrlTitle) == 0 {
-		log.Default().Printf("[error] urlTitle is %d characters long.\n", len(bp.UrlTitle))
+	if len(bp.Url) == 0 {
+		log.Default().Printf("[error] url is %d characters long.\n", len(bp.Url))
 		return false
 	}
 
@@ -51,7 +51,7 @@ func (m PostModel) Get(id int) (*Post, error) {
 	}
 
 	var post Post
-	switch err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.ShortDescription, &post.CreatedAt, &post.UrlTitle, &post.Draft); err {
+	switch err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.ShortDescription, &post.CreatedAt, &post.Url, &post.Draft); err {
 	case sql.ErrNoRows:
 		log.Default().Println("No such post row was found.")
 	case nil:
@@ -79,7 +79,7 @@ func (m PostModel) GetBy(query map[string]string) (*Post, error) {
 	}
 
 	var post Post
-	switch err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.ShortDescription, &post.CreatedAt, &post.UrlTitle, &post.Draft); err {
+	switch err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.ShortDescription, &post.CreatedAt, &post.Url, &post.Draft); err {
 	case sql.ErrNoRows:
 		log.Default().Println("No such post row was found.")
 	case nil:
@@ -100,7 +100,7 @@ func (m PostModel) All() ([]*Post, error) {
 	posts := make([]*Post, 0)
 	for rows.Next() {
 		var post Post
-		err = rows.Scan(&post.ID, &post.Title, &post.Content, &post.ShortDescription, &post.CreatedAt, &post.UrlTitle, &post.Draft)
+		err = rows.Scan(&post.ID, &post.Title, &post.Content, &post.ShortDescription, &post.CreatedAt, &post.Url, &post.Draft)
 		if err != nil {
 			return nil, err
 		}
@@ -115,7 +115,7 @@ func (m PostModel) All() ([]*Post, error) {
 func (m PostModel) Create(post *Post) (int, error) {
 	id := int(uuid.New().ID())
 	_, err := m.DB.Exec("INSERT INTO cms.post(id, title, content, shortdescription, createdat, urltitle, draft) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-		id, post.Title, post.Content, post.ShortDescription, post.CreatedAt, post.UrlTitle, post.Draft,
+		id, post.Title, post.Content, post.ShortDescription, post.CreatedAt, post.Url, post.Draft,
 	)
 	if err != nil {
 		log.Default().Println("Failed to insert new post. Error:", err.Error())

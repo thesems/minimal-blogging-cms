@@ -69,34 +69,37 @@ func (s *Server) PostPost(w http.ResponseWriter, req *http.Request, params httpr
 	}
 
 	hxReq := req.Header.Get("Hx-Request") == "true"
-	if hxReq {
-		title := req.Form.Get("title")
-		description := req.Form.Get("description")
-		urlTitle := req.Form.Get("url")
-
-		post := &models.Post{
-			Title: title, Content: "to-do", CreatedAt: time.Now(), ShortDescription: description,
-			UrlTitle: urlTitle, Draft: true,
-		}
-
-		valid := models.ValidatePost(post)
-		if !valid {
-			http.Error(w, "Not a valid post.", http.StatusBadRequest)
-			log.Default().Println("[error] post is not valid.")
-			return
-		}
-
-		postId, err := s.appEnv.Posts.Create(post)
-		if postId == -1 {
-			http.Error(w, "Failed to create the post.", http.StatusInternalServerError)
-			log.Default().Println(err.Error())
-			return
-		}
-		post.ID = postId
-
-		log.Default().Printf("Blog post %s created.\n", title)
-		s.CreatePostRow(w, req, post)
+	if !hxReq {
+		http.Error(w, "Could not decode request intention.", http.StatusBadRequest)
+		return
 	}
+
+	title := req.Form.Get("title")
+	description := req.Form.Get("description")
+	urlTitle := req.Form.Get("url")
+
+	post := &models.Post{
+		Title: title, Content: "to-do", CreatedAt: time.Now(), ShortDescription: description,
+		Url: urlTitle, Draft: true,
+	}
+
+	valid := models.ValidatePost(post)
+	if !valid {
+		http.Error(w, "Not a valid post.", http.StatusBadRequest)
+		log.Default().Println("[error] post is not valid.")
+		return
+	}
+
+	postId, err := s.appEnv.Posts.Create(post)
+	if postId == -1 {
+		http.Error(w, "Failed to create the post.", http.StatusInternalServerError)
+		log.Default().Println(err.Error())
+		return
+	}
+	post.ID = postId
+
+	log.Default().Printf("Blog post %s created.\n", title)
+	s.CreatePostRow(w, req, post)
 }
 
 func (s *Server) PostPut(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
@@ -125,8 +128,9 @@ func (s *Server) PostPut(w http.ResponseWriter, req *http.Request, params httpro
 	description := req.Form.Get("description")
 	url := req.Form.Get("url")
 	content := req.Form.Get("content")
+	draft := req.Form.Get("draft")
 
-	if title == "" && description == "" && url == "" && content == "" {
+	if title == "" && description == "" && url == "" && content == "" && draft == "" {
 		http.Error(w, "Internal server error.", http.StatusInternalServerError)
 		log.Default().Println("[error] failed to parse form data. Form data empty.")
 		return
@@ -139,17 +143,21 @@ func (s *Server) PostPut(w http.ResponseWriter, req *http.Request, params httpro
 		post.ShortDescription = description
 	}
 	if url != "" {
-		post.UrlTitle = url
+		post.Url = url
 	}
 	if content != "" {
 		post.Content = content
+	}
+	if draft != "" {
+		post.Draft = draft == "true"
 	}
 
 	attrs := map[string]string{
 		"title":            post.Title,
 		"shortdescription": post.ShortDescription,
-		"urltitle":         post.UrlTitle,
+		"urltitle":         post.Url,
 		"content":          post.Content,
+		"draft":            strconv.FormatBool(post.Draft),
 	}
 	err = s.appEnv.Posts.Update(post.ID, attrs)
 	if err != nil {
@@ -158,37 +166,26 @@ func (s *Server) PostPut(w http.ResponseWriter, req *http.Request, params httpro
 		return
 	}
 
-	log.Default().Printf("Post %s saved.\n", post.UrlTitle)
+	log.Default().Printf("Post %s saved.\n", post.Url)
 	if post == nil {
 		http.Error(w, "Failed to parse put request.", http.StatusBadRequest)
 		log.Default().Println(err.Error())
 		return
 	}
 	hxReq := req.Header.Get("Hx-Request") == "true"
-	isEdit := req.URL.Query().Has("edit")
+	isEditPage := req.URL.Query().Has("edit")
 
-	if hxReq && !isEdit {
-		s.CreatePostRow(w, req, post)
+	if !hxReq {
+		http.Error(w, "Could not decode request intention.", http.StatusBadRequest)
 		return
 	}
 
-	if hxReq && isEdit {
-		draft := req.Form.Get("draft")
-		if draft == "false" {
-			setAttrs := map[string]string{
-				"Draft": "false",
-			}
-			err := s.appEnv.Posts.Update(post.ID, setAttrs)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				log.Default().Println(err.Error())
-			}
-		} else {
-			w.Header().Set("HX-Redirect", fmt.Sprintf("/post/%s", post.UrlTitle))
-		}
-
+	if isEditPage {
+		w.Header().Set("HX-Redirect", fmt.Sprintf("/post/%s", post.Url))
 		return
 	}
+
+	s.CreatePostRow(w, req, post)
 }
 
 func (s *Server) PostDelete(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
@@ -259,12 +256,12 @@ func (s *Server) CreatePostRow(w http.ResponseWriter, req *http.Request, post *m
 			<td><span>{{if eq .Draft true}}Yes{{else}}No{{end}}</span></td>
 			<td><span>{{.Title}}</span></td>
 			<td><span>{{.ShortDescription}}</span></td>
-			<td><span>{{.UrlTitle}}</span></td>
+			<td><span>{{.Url}}</span></td>
 			<td><span>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</span></td>
 			<td>
            		<div class="flex gap-4">
 					<button class="btn btn-outline btn-ghost btn-xs">
-						<a href="post/{{.UrlTitle}}">View</a>
+						<a href="post/{{.Url}}">View</a>
 					</button>
 					<button class="btn btn-outline btn-ghost btn-xs" hx-get="admin?edit={{.ID}}"
 						hx-target="closest tr">Edit</button>
@@ -295,7 +292,7 @@ func (s *Server) CreatePostRowEdit(w http.ResponseWriter, req *http.Request, pos
 			</td>
 			<td>
 				<input type="text" placeholder="URL" name="url" id="url"
-					class="input input-bordered w-full max-w-xs" value="{{.UrlTitle}}" autofocus form="admin-posts-edit-{{.ID}}"/>
+					class="input input-bordered w-full max-w-xs" value="{{.Url}}" autofocus form="admin-posts-edit-{{.ID}}"/>
 			</td>
 			<td><span>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</span></td>
 			<td>
